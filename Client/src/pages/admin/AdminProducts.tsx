@@ -1,0 +1,307 @@
+import React, { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { 
+  fetchProducts, 
+  fetchCategories, 
+  createProduct, 
+  updateProduct,
+  deleteProduct,
+  clearError 
+} from '../../store/slices/productSlice';
+import { Product } from '../../types';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import Alert from '../../components/ui/Alert';
+
+const AdminProducts: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { products, categories, isLoading, error } = useAppSelector(state => state.products);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    category: '',
+    image: null as File | null
+  });
+  
+  useEffect(() => {
+    dispatch(fetchProducts({ page: 1, limit: 100 }));
+    dispatch(fetchCategories());
+  }, [dispatch]);
+  
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      stock: '',
+      category: '',
+      image: null
+    });
+    setSelectedProduct(null);
+  };
+  
+  const openModal = (product?: Product) => {
+    if (product) {
+      setSelectedProduct(product);
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price.toString(),
+        stock: product.stock.toString(),
+        category: product.category,
+        image: null
+      });
+    } else {
+      resetForm();
+    }
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData(prev => ({ ...prev, image: e.target.files![0] }));
+    }
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const productFormData = new FormData();
+    productFormData.append('name', formData.name);
+    productFormData.append('description', formData.description);
+    productFormData.append('price', formData.price);
+    productFormData.append('stock', formData.stock);
+    productFormData.append('category', formData.category);
+    
+    if (formData.image) {
+      productFormData.append('image', formData.image);
+    }
+    
+    try {
+      if (selectedProduct) {
+        await dispatch(updateProduct({
+          id: selectedProduct.id,
+          productData: productFormData
+        }));
+      } else {
+        await dispatch(createProduct(productFormData));
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
+  
+  const handleDelete = async (product: Product) => {
+    if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      await dispatch(deleteProduct(product.id));
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Manage Products</h1>
+        <button className="btn btn-primary" onClick={() => openModal()}>
+          Add New Product
+        </button>
+      </div>
+      
+      {error && (
+        <Alert 
+          type="error" 
+          message={error} 
+          onClose={() => dispatch(clearError())} 
+        />
+      )}
+      
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map(product => (
+                <tr key={product.id}>
+                  <td>
+                    <div className="avatar">
+                      <div className="w-12 h-12">
+                        <img 
+                          src={product.image || "https://picsum.photos/100/100"} 
+                          alt={product.name}
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="font-bold">{product.name}</div>
+                    <div className="text-sm line-clamp-1">{product.description}</div>
+                  </td>
+                  <td>{product.category}</td>
+                  <td>${product.price.toFixed(2)}</td>
+                  <td>{product.stock}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button 
+                        className="btn btn-sm btn-outline" 
+                        onClick={() => openModal(product)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-error" 
+                        onClick={() => handleDelete(product)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      
+      {/* Product Form Modal */}
+      <dialog id="product_modal" className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box max-w-2xl">
+          <h3 className="font-bold text-lg">
+            {selectedProduct ? 'Edit Product' : 'Add New Product'}
+          </h3>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="form-control mt-4">
+              <label className="label">
+                <span className="label-text">Product Name</span>
+              </label>
+              <input 
+                type="text" 
+                name="name" 
+                className="input input-bordered" 
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Description</span>
+              </label>
+              <textarea 
+                name="description" 
+                className="textarea textarea-bordered h-24" 
+                value={formData.description}
+                onChange={handleChange}
+                required
+              ></textarea>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Price</span>
+                </label>
+                <input 
+                  type="number" 
+                  name="price" 
+                  step="0.01" 
+                  min="0" 
+                  className="input input-bordered" 
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Stock</span>
+                </label>
+                <input 
+                  type="number" 
+                  name="stock" 
+                  min="0" 
+                  className="input input-bordered" 
+                  value={formData.stock}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Category</span>
+              </label>
+              <select 
+                name="category" 
+                className="select select-bordered" 
+                value={formData.category}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>Select a category</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Image</span>
+              </label>
+              <input 
+                type="file" 
+                className="file-input file-input-bordered" 
+                accept="image/*"
+                onChange={handleImageChange}
+                required={!selectedProduct}
+              />
+              {selectedProduct && !formData.image && (
+                <label className="label">
+                  <span className="label-text-alt">Leave empty to keep current image</span>
+                </label>
+              )}
+            </div>
+            
+            <div className="modal-action">
+              <button type="button" className="btn" onClick={closeModal}>Cancel</button>
+              <button type="submit" className="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+        <div className="modal-backdrop" onClick={closeModal}></div>
+      </dialog>
+    </div>
+  );
+};
+
+export default AdminProducts;
