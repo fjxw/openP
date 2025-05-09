@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchCart } from '../store/slices/cartSlice';
-import { createOrder } from '../store/slices/orderSlice';
+import { createOrderFromCart } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
 
@@ -36,12 +36,12 @@ const CheckoutPage: React.FC = () => {
       return;
     }
     
-    const result = await dispatch(createOrder({
+    const result = await dispatch(createOrderFromCart({
       address: formData.address,
       phone: formData.phone
     }));
     
-    if (createOrder.fulfilled.match(result)) {
+    if (createOrderFromCart.fulfilled.match(result)) {
       navigate(`/orders/${result.payload.id}`);
     }
   };

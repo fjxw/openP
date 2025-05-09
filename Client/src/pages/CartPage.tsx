@@ -1,24 +1,46 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link } from 'react-router';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchCart, updateCartItem, removeFromCart } from '../store/slices/cartSlice';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Alert from '../components/ui/Alert';
 
-interface CartItem {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    stock: number;
+const CartPage: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { items, totalPrice, isLoading, error } = useAppSelector((state) => state.cart);
+  
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+  
+  const handleQuantityChange = (productId: number, quantity: number) => {
+    dispatch(updateCartItem({ productId, quantity }));
   };
-  quantity: number;
-}
+  
+  const handleRemoveItem = (productId: number) => {
+    dispatch(removeFromCart(productId));
+  };
 
-interface CartPageProps {
-  items: CartItem[];
-  totalPrice: number;
-  handleQuantityChange: (productId: string, quantity: number) => void;
-  handleRemoveItem: (productId: string) => void;
-}
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
-const CartPage: React.FC<CartPageProps> = ({ items, totalPrice, handleQuantityChange, handleRemoveItem }) => {
+  if (error) {
+    return <Alert type="error" message={error} />;
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
+        <p className="mb-6">Add some items to your cart to continue shopping.</p>
+        <Link to="/" className="btn btn-primary">
+          Browse Products
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Shopping Cart</h1>
@@ -51,7 +73,7 @@ const CartPage: React.FC<CartPageProps> = ({ items, totalPrice, handleQuantityCh
                         <button
                           className="btn btn-sm"
                           onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.product.stock}
+                          disabled={item.quantity >= item.product.quantity}
                         >
                           +
                         </button>

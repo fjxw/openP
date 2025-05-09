@@ -1,6 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { OrderState, Order, OrderStatus } from '../../types';
-import { orderService } from '../../services/orderService';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { OrderState, Order } from '../../types';
+import orderService  from '../../api/orderService';
 
 const initialState: OrderState = {
   orders: [],
@@ -11,11 +12,26 @@ const initialState: OrderState = {
 
 export const createOrder = createAsyncThunk(
   'orders/createOrder',
+  async ({ address, phone, items }: { 
+    address: string; 
+    phone: string; 
+    items: { productId: number; quantity: number; }[] 
+  }, { rejectWithValue }) => {
+    try {
+      return await orderService.createOrder({ address, phone, items });
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Не удалось создать заказ');
+    }
+  }
+);
+
+export const createOrderFromCart = createAsyncThunk(
+  'orders/createOrderFromCart',
   async ({ address, phone }: { address: string; phone: string }, { rejectWithValue }) => {
     try {
-      return await orderService.createOrder({ address, phone });
+      return await orderService.createOrderFromCart({ address, phone });
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create order');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось создать заказ из корзины');
     }
   }
 );
@@ -24,42 +40,31 @@ export const fetchUserOrders = createAsyncThunk(
   'orders/fetchUserOrders',
   async (_, { rejectWithValue }) => {
     try {
-      return await orderService.getUserOrders();
+      return await orderService.getOrders();
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch orders');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось получить заказы');
     }
   }
 );
 
 export const fetchOrderById = createAsyncThunk(
   'orders/fetchOrderById',
-  async (id: string, { rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       return await orderService.getOrderById(id);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch order');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось получить заказ');
     }
   }
 );
 
 export const updateOrderStatus = createAsyncThunk(
   'orders/updateOrderStatus',
-  async ({ id, status }: { id: string; status: OrderStatus }, { rejectWithValue }) => {
+  async ({ id, status }: { id: number; status: string }, { rejectWithValue }) => {
     try {
-      return await orderService.updateOrderStatus(id, status);
+      return await orderService.updateOrder(id, { status });
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update order status');
-    }
-  }
-);
-
-export const fetchAllOrders = createAsyncThunk(
-  'orders/fetchAllOrders',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await orderService.getAllOrders();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch all orders');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось обновить статус');
     }
   }
 );
@@ -77,7 +82,6 @@ const orderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Create order cases
       .addCase(createOrder.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -92,7 +96,20 @@ const orderSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch user orders cases
+      .addCase(createOrderFromCart.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createOrderFromCart.fulfilled, (state, action: PayloadAction<Order>) => {
+        state.isLoading = false;
+        state.currentOrder = action.payload;
+        state.orders.push(action.payload);
+      })
+      .addCase(createOrderFromCart.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
       .addCase(fetchUserOrders.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -106,7 +123,6 @@ const orderSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch order by id cases
       .addCase(fetchOrderById.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -119,8 +135,7 @@ const orderSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Update order status cases
+
       .addCase(updateOrderStatus.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -139,20 +154,6 @@ const orderSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Fetch all orders cases (admin only)
-      .addCase(fetchAllOrders.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchAllOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
-        state.isLoading = false;
-        state.orders = action.payload;
-      })
-      .addCase(fetchAllOrders.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
   },
 });
 

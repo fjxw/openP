@@ -7,8 +7,8 @@ import {
   updateProduct,
   deleteProduct,
   clearError 
-} from '../../store/slices/productSlice';
-import { Product } from '../../types';
+} from '../../store/slices/productsSlice';
+import type { Product } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
 
@@ -22,13 +22,13 @@ const AdminProducts: React.FC = () => {
     name: '',
     description: '',
     price: '',
-    stock: '',
+    quantity: '',
     category: '',
     image: null as File | null
   });
   
   useEffect(() => {
-    dispatch(fetchProducts({ page: 1, limit: 100 }));
+    dispatch(fetchProducts({ pageNumber: 1, pageSize: 100 }));
     dispatch(fetchCategories());
   }, [dispatch]);
   
@@ -37,7 +37,7 @@ const AdminProducts: React.FC = () => {
       name: '',
       description: '',
       price: '',
-      stock: '',
+      quantity: '',
       category: '',
       image: null
     });
@@ -51,7 +51,7 @@ const AdminProducts: React.FC = () => {
         name: product.name,
         description: product.description,
         price: product.price.toString(),
-        stock: product.stock.toString(),
+        quantity: product.quantity.toString(),
         category: product.category,
         image: null
       });
@@ -84,7 +84,7 @@ const AdminProducts: React.FC = () => {
     productFormData.append('name', formData.name);
     productFormData.append('description', formData.description);
     productFormData.append('price', formData.price);
-    productFormData.append('stock', formData.stock);
+    productFormData.append('quantity', formData.quantity);
     productFormData.append('category', formData.category);
     
     if (formData.image) {
@@ -140,7 +140,7 @@ const AdminProducts: React.FC = () => {
                 <th>Name</th>
                 <th>Category</th>
                 <th>Price</th>
-                <th>Stock</th>
+                <th>quantity</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -164,7 +164,7 @@ const AdminProducts: React.FC = () => {
                   </td>
                   <td>{product.category}</td>
                   <td>${product.price.toFixed(2)}</td>
-                  <td>{product.stock}</td>
+                  <td>{product.quantity}</td>
                   <td>
                     <div className="flex gap-2">
                       <button 
@@ -242,14 +242,14 @@ const AdminProducts: React.FC = () => {
               
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Stock</span>
+                  <span className="label-text">quantity</span>
                 </label>
                 <input 
                   type="number" 
-                  name="stock" 
+                  name="quantity" 
                   min="0" 
                   className="input input-bordered" 
-                  value={formData.stock}
+                  value={formData.quantity}
                   onChange={handleChange}
                   required
                 />
@@ -268,7 +268,7 @@ const AdminProducts: React.FC = () => {
                 required
               >
                 <option value="" disabled>Select a category</option>
-                {categories.map(category => (
+                {(categories || []).map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>

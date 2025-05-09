@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 const Footer: React.FC = () => {
   return (
@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
       <nav>
         <header className="footer-title">Shop</header> 
         <Link to="/" className="link link-hover">Home</Link>
-        <Link to="/products" className="link link-hover">Products</Link>
+        <Link to="/" className="link link-hover">Products</Link>
         <Link to="/cart" className="link link-hover">Cart</Link>
       </nav> 
       <nav>

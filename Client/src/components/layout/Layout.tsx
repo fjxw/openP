@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
 import { useAppDispatch } from '../../store/hooks';

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
-import { UserRole } from '../../types';
+
 
 const Header: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector(state => state.auth);
@@ -40,7 +40,7 @@ const Header: React.FC = () => {
                 <li><Link to="/profile">Profile</Link></li>
               </>
             )}
-            {user?.role === UserRole.ADMIN && (
+            {user?.role === 'Admin' && (
               <li>
                 <a>Admin</a>
                 <ul className="p-2">
@@ -65,7 +65,7 @@ const Header: React.FC = () => {
               <li><Link to="/profile">Profile</Link></li>
             </>
           )}
-          {user?.role === UserRole.ADMIN && (
+          {user?.role === 'Admin' && (
             <li>
               <details>
                 <summary>Admin</summary>

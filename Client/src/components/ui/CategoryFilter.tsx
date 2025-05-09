@@ -1,13 +1,13 @@
 import React from 'react';
 
 interface CategoryFilterProps {
-  categories: string[];
+  categories: string[] | undefined;
   selectedCategory: string | undefined;
   onChange: (category: string | undefined) => void;
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({ 
-  categories, 
+  categories = [], 
   selectedCategory, 
   onChange 
 }) => {

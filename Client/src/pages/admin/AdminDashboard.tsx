@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchAllOrders } from '../../store/slices/orderSlice';
 import { OrderStatus } from '../../types';
@@ -145,9 +145,9 @@ const AdminDashboard: React.FC = () => {
               <tbody>
                 {orders.slice(0, 5).map(order => (
                   <tr key={order.id}>
-                    <td>#{order.id.substring(0, 8)}</td>
+                    <td>#{order.id}</td>
                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>{order.userId.substring(0, 8)}</td>
+                    <td>{order.userId}</td>
                     <td>${order.totalPrice.toFixed(2)}</td>
                     <td>
                       <span className={`badge ${

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchProducts, fetchCategories } from '../store/slices/productSlice';
+import { fetchProducts, fetchCategories } from '../store/slices/productsSlice';
 import ProductCard from '../components/ui/ProductCard';
 import CategoryFilter from '../components/ui/CategoryFilter';
 import PriceFilter from '../components/ui/PriceFilter';
@@ -31,18 +31,14 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     dispatch(
       fetchProducts({
-        category,
-        search,
-        minPrice,
-        maxPrice,
-        page,
-        limit: 12
+        pageNumber: page,
+        pageSize: 12
       })
     );
   }, [dispatch, category, search, minPrice, maxPrice, page]);
 
   const updateFilters = (filters: Record<string, string | undefined>) => {
-    const newParams = new URLSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams.toString());
     
     // Update params
     Object.entries(filters).forEach(([key, value]) => {

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchOrderById, clearCurrentOrder } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -12,7 +12,7 @@ const OrderConfirmationPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchOrderById(id));
+      dispatch(fetchOrderById(Number(id)));
     }
     
     return () => {
@@ -48,7 +48,7 @@ const OrderConfirmationPage: React.FC = () => {
       
       <div className="card bg-base-100 shadow-lg mb-8">
         <div className="card-body">
-          <h2 className="card-title">Order #{currentOrder.id.substring(0, 8)}</h2>
+          <h2 className="card-title">Order #{String(currentOrder.id).substring(0, 8)}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <h3 className="font-bold">Shipping Address:</h3>

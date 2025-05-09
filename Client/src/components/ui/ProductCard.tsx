@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Product } from '../../types';
+import { Link } from 'react-router';
+import type { Product } from '../../types';
 import { useAppDispatch } from '../../store/hooks';
 import { addToCart } from '../../store/slices/cartSlice';
 
@@ -28,11 +28,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="card-body">
         <h2 className="card-title">
           {product.name}
-          {product.stock <= 5 && product.stock > 0 && (
-            <div className="badge badge-warning">Low stock</div>
+          {product.quantity <= 5 && product.quantity > 0 && (
+            <div className="badge badge-warning">Мало</div>
           )}
-          {product.stock === 0 && (
-            <div className="badge badge-error">Out of stock</div>
+          {product.quantity === 0 && (
+            <div className="badge badge-error">Нет в наличии</div>
           )}
         </h2>
         <p className="text-sm line-clamp-2">{product.description}</p>
@@ -42,14 +42,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
         <div className="card-actions justify-end mt-3">
           <Link to={`/products/${product.id}`} className="btn btn-sm btn-outline">
-            Details
+            Подробнее
           </Link>
           <button 
             className="btn btn-sm btn-primary" 
             onClick={handleAddToCart}
-            disabled={product.stock === 0}
+            disabled={product.quantity === 0}
           >
-            Add to Cart
+            В корзину
           </button>
         </div>
       </div>

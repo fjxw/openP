@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUserOrders } from '../store/slices/orderSlice';
-import { OrderStatus } from '../types';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
 
@@ -14,17 +13,15 @@ const OrdersPage: React.FC = () => {
     dispatch(fetchUserOrders());
   }, [dispatch]);
 
-  const getStatusBadgeClass = (status: OrderStatus) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case OrderStatus.PENDING:
-        return 'badge-warning';
-      case OrderStatus.PROCESSING:
+      case 'Created':
         return 'badge-info';
-      case OrderStatus.SHIPPED:
+      case 'InProgress':
         return 'badge-primary';
-      case OrderStatus.DELIVERED:
+      case 'Completed':
         return 'badge-success';
-      case OrderStatus.CANCELLED:
+      case 'Cancelled':
         return 'badge-error';
       default:
         return 'badge-ghost';
@@ -62,7 +59,7 @@ const OrdersPage: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="card-title">
-                    Order #{order.id.substring(0, 8)}
+                    Order #{order.id}
                     <div className={`badge ${getStatusBadgeClass(order.status)}`}>
                       {order.status}
                     </div>

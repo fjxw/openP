@@ -1,6 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { UserRole } from '../types';
+import { Routes, Route, Navigate } from 'react-router';
 
 // Layout
 import Layout from '../components/layout/Layout';
@@ -26,6 +25,7 @@ import AdminOrders from '../pages/admin/AdminOrders';
 // Auth
 import ProtectedRoute from './ProtectedRoute';
 
+const allowedRoles: string[] = ["Admin"];
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -66,22 +66,22 @@ const AppRoutes: React.FC = () => {
         
         {/* Admin routes - requires admin role */}
         <Route path="admin" element={
-          <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+          <ProtectedRoute allowedRoles={allowedRoles}>
             <AdminDashboard />
           </ProtectedRoute>
         } />
         <Route path="admin/products" element={
-          <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+          <ProtectedRoute allowedRoles={allowedRoles}>
             <AdminProducts />
           </ProtectedRoute>
         } />
         <Route path="admin/users" element={
-          <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+          <ProtectedRoute allowedRoles={allowedRoles}>
             <AdminUsers />
           </ProtectedRoute>
         } />
         <Route path="admin/orders" element={
-          <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+          <ProtectedRoute allowedRoles={allowedRoles}>
             <AdminOrders />
           </ProtectedRoute>
         } />

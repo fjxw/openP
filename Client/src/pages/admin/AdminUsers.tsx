@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { User, UserRole } from '../../types';
-import { userService } from '../../services/userService';
+import type { User } from '../../types';
+import userService from '../../api/userService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
 

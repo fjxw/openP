@@ -1,45 +1,25 @@
-// User related types
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-}
-
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN'
-}
-
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
-// Product related types
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
-  stock: number;
-  image: string;
+  image?: string;
   category: string;
+  quantity: number;
+  createdAt: string;
 }
 
 export interface ProductState {
   products: Product[];
-  product: Product | null;
-  categories: string[];
+  currentProduct: Product | null;
+  totalCount: number;
+  categories?: string[];
+  totalPages: number; // Добавляем свойство
+  currentPage: number; // Добавляем свойство
   isLoading: boolean;
   error: string | null;
-  totalPages: number;
-  currentPage: number;
 }
 
-// Cart related types
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -47,27 +27,33 @@ export interface CartItem {
 
 export interface CartState {
   items: CartItem[];
-  totalPrice: number;
   isLoading: boolean;
+  totalPrice: number 
   error: string | null;
 }
 
-// Order related types
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  SHIPPED = 'SHIPPED',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  role: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  isAdmin: boolean;
 }
 
 export interface Order {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   items: CartItem[];
   totalPrice: number;
-  status: OrderStatus;
-  address: string;
+  status: string;
+  address: string;  
   phone: string;
   createdAt: string;
 }
@@ -79,12 +65,47 @@ export interface OrderState {
   error: string | null;
 }
 
-// Filter related types
 export interface ProductFilters {
   category?: string;
   minPrice?: number;
   maxPrice?: number;
   search?: string;
-  page: number;
-  limit: number;
+  pageNumber: number;
+  pageSize: number;
+}
+
+export interface CreateUserRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginUserDto {
+  email: string;
+  password: string;
+}
+
+export interface UserDto {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  category: string;
+  quantity: number;
+}
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  price?: number;
+  image?: string;
+  category?: string;
+  quantity?: number;
 }

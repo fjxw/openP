@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { CartItem, CartState } from '../../types';
-import { cartService } from '../../services/cartService';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { CartState } from '../../types';
+import cartService from "../../api/cartService";
 
 const initialState: CartState = {
   items: [],
@@ -22,9 +22,9 @@ export const fetchCart = createAsyncThunk(
 
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ productId, quantity }: { productId: string; quantity: number }, { rejectWithValue }) => {
+  async ({ productId, quantity }: { productId: number; quantity: number }, { rejectWithValue }) => {
     try {
-      return await cartService.addToCart(productId, quantity);
+      return await cartService.addItemToCart(productId, quantity);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add item to cart');
     }
@@ -33,9 +33,9 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
-  async ({ productId, quantity }: { productId: string; quantity: number }, { rejectWithValue }) => {
+  async ({ productId, quantity }: { productId: number; quantity: number }, { rejectWithValue }) => {
     try {
-      return await cartService.updateCartItem(productId, quantity);
+      return await cartService.updateItemQuantity(productId, quantity);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update cart item');
     }
@@ -44,9 +44,9 @@ export const updateCartItem = createAsyncThunk(
 
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
-  async (productId: string, { rejectWithValue }) => {
+  async (productId: number, { rejectWithValue }) => {
     try {
-      return await cartService.removeFromCart(productId);
+      return await cartService.removeItemFromCart(productId);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to remove item from cart');
     }
@@ -74,7 +74,6 @@ const cartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch cart cases
       .addCase(fetchCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -88,8 +87,6 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Add to cart cases
       .addCase(addToCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -103,8 +100,6 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Update cart item cases
       .addCase(updateCartItem.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -118,8 +113,6 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Remove from cart cases
       .addCase(removeFromCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -133,8 +126,6 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Clear cart cases
       .addCase(clearCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;

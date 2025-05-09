@@ -141,5 +141,21 @@ namespace OpenP.Controllers
                 return BadRequest(new { message = "Ошибка при удалении пользователя", error = e.Message });
             }
         }
+
+        [HttpDelete]
+        [Authorize(Roles = "User, Admin")]
+        public async Task<IActionResult> DeleteCurrentUser()
+        {
+            try
+            {
+                var id = GetCurrentUserId();
+                await userRepository.DeleteUserAsync(id);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = "Ошибка при удалении пользователя", error = e.Message });
+            }
+        }
     }
 }
