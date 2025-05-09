@@ -73,12 +73,34 @@ namespace OpenP.Controllers
             return Ok(dto);
         }
 
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
+        {
+            var orders = await orderRepository.GetAllOrdersAsync();
+            var result = orders.Select(o => new OrderDto
+            {
+                OrderId = o.OrderId,
+                UserId = o.UserId,
+                OrderDate = o.OrderDate,
+                Status = o.Status.ToString(),
+                Address = o.Address,
+                PhoneNumber = o.PhoneNumber,
+                OrderItems = o.OrderItems.Select(i => new OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    Price = i.Price,
+                    Quantity = i.Quantity
+                }).ToList(),
+                TotalAmount = o.OrderItems.Sum(i => i.Price * i.Quantity)
+            });
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
         {
             var userId = GetUserId();
-            
-            // Check if user exists before creating an order
             var user = await userRepository.GetUserByIdAsync(userId);
             if (user == null)
                 return NotFound(new { message = "Пользователь не найден" });

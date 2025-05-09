@@ -68,17 +68,22 @@ namespace OpenP.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserDto>> CreateUser(CreateUserRequest request)
         {
+            if (Enum.TryParse<Roles>(request.Role, out var role))
+            {
+                return BadRequest(new { message = "Некорректная роль" });
+            }
             var user = new User
             {
                 Username = request.Username,
-                Role = Roles.User 
+                Role = role,
             };
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
             await userRepository.AddUserAsync(user);
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, new UserDto
             {
                 UserId = user.UserId,
-                Username = user.Username
+                Username = user.Username,
+                Role = user.Role.ToString(),
             });
         }
 

@@ -2,17 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchAllOrders } from '../../store/slices/orderSlice';
-import { OrderStatus } from '../../types';
 
 const AdminDashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { orders } = useAppSelector(state => state.orders);
   const [statistics, setStatistics] = useState({
     totalSales: 0,
-    pendingOrders: 0,
-    processingOrders: 0,
-    shippedOrders: 0,
-    deliveredOrders: 0,
+    createdOrders: 0,
+    inProgressOrders: 0,
+    completedOrders: 0,
     cancelledOrders: 0,
   });
 
@@ -25,11 +23,10 @@ const AdminDashboard: React.FC = () => {
     if (orders.length > 0) {
       const stats = {
         totalSales: orders.reduce((sum, order) => sum + order.totalPrice, 0),
-        pendingOrders: orders.filter(o => o.status === OrderStatus.PENDING).length,
-        processingOrders: orders.filter(o => o.status === OrderStatus.PROCESSING).length,
-        shippedOrders: orders.filter(o => o.status === OrderStatus.SHIPPED).length,
-        deliveredOrders: orders.filter(o => o.status === OrderStatus.DELIVERED).length,
-        cancelledOrders: orders.filter(o => o.status === OrderStatus.CANCELLED).length,
+        createdOrders: orders.filter(o => o.status === 'Created').length,
+        inProgressOrders: orders.filter(o => o.status === "InProgress").length,
+        completedOrders: orders.filter(o => o.status === 'Completed').length,
+        cancelledOrders: orders.filter(o => o.status === 'Cancelled').length,
       };
       setStatistics(stats);
     }
@@ -54,7 +51,7 @@ const AdminDashboard: React.FC = () => {
         
         <div className="stat bg-base-100 shadow">
           <div className="stat-title">Pending Orders</div>
-          <div className="stat-value">{statistics.pendingOrders}</div>
+          <div className="stat-value">{statistics.createdOrders}</div>
           <div className="stat-desc">Require attention</div>
         </div>
       </div>
@@ -71,28 +68,21 @@ const AdminDashboard: React.FC = () => {
                   <span className="badge badge-warning mr-2"></span>
                   <span>Pending</span>
                 </div>
-                <span className="font-bold">{statistics.pendingOrders}</span>
+                <span className="font-bold">{statistics.createdOrders}</span>
               </li>
               <li className="flex justify-between items-center">
                 <div className="flex items-center">
                   <span className="badge badge-info mr-2"></span>
                   <span>Processing</span>
                 </div>
-                <span className="font-bold">{statistics.processingOrders}</span>
+                <span className="font-bold">{statistics.inProgressOrders}</span>
               </li>
               <li className="flex justify-between items-center">
                 <div className="flex items-center">
                   <span className="badge badge-primary mr-2"></span>
                   <span>Shipped</span>
                 </div>
-                <span className="font-bold">{statistics.shippedOrders}</span>
-              </li>
-              <li className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <span className="badge badge-success mr-2"></span>
-                  <span>Delivered</span>
-                </div>
-                <span className="font-bold">{statistics.deliveredOrders}</span>
+                <span className="font-bold">{statistics.completedOrders}</span>
               </li>
               <li className="flex justify-between items-center">
                 <div className="flex items-center">
@@ -151,10 +141,9 @@ const AdminDashboard: React.FC = () => {
                     <td>${order.totalPrice.toFixed(2)}</td>
                     <td>
                       <span className={`badge ${
-                        order.status === OrderStatus.PENDING ? 'badge-warning' :
-                        order.status === OrderStatus.PROCESSING ? 'badge-info' :
-                        order.status === OrderStatus.SHIPPED ? 'badge-primary' :
-                        order.status === OrderStatus.DELIVERED ? 'badge-success' : 
+                        order.status === 'Created' ? 'badge-warning' :
+                        order.status === 'InProgress' ? 'badge-info' :
+                        order.status === 'Completed' ? 'badge-primary' :
                         'badge-error'
                       }`}>
                         {order.status}

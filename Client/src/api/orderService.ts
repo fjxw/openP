@@ -13,6 +13,17 @@ const orderService = {
     }
   },
 
+  getAllOrders: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/order/all`, { 
+        withCredentials: true 
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data?.message || 'Ошибка при получении заказов';
+    }
+  },
+
   getOrderById: async (id: number) => {
     try {
       const response = await axios.get(`${API_URL}/api/order/${id}`, { 

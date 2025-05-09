@@ -80,25 +80,29 @@ const AdminProducts: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+  
     const productFormData = new FormData();
-    productFormData.append('name', formData.name);
-    productFormData.append('description', formData.description);
-    productFormData.append('price', formData.price);
-    productFormData.append('quantity', formData.quantity);
-    productFormData.append('category', formData.category);
-    
     if (formData.image) {
       productFormData.append('image', formData.image);
     }
+    
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      quantity: parseInt(formData.quantity),
+      category: formData.category,
+      imageFile: productFormData 
+    };
     
     try {
       if (selectedProduct) {
         await dispatch(updateProduct({
           id: selectedProduct.id,
-          productData: productFormData
+          productData: productData
         }));
       } else {
-        await dispatch(createProduct(productFormData));
+        await dispatch(createProduct(productData));
       }
       closeModal();
     } catch (error) {

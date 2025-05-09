@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchAllOrders, updateOrderStatus } from '../../store/slices/orderSlice';
-import { Order, OrderStatus } from '../../types';
+import type { Order } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
+
+const ORDER_STATUSES = ['Created', 'InProgress', 'Completed', 'Cancelled'] as const;
 
 const AdminOrders: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -25,22 +27,20 @@ const AdminOrders: React.FC = () => {
     setSelectedOrder(null);
   };
   
-  const handleStatusChange = async (id: string, status: OrderStatus) => {
+  const handleStatusChange = async (id: number, status: string) => {
     await dispatch(updateOrderStatus({ id, status }));
     handleCloseModal();
   };
   
-  const getStatusBadgeClass = (status: OrderStatus) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case OrderStatus.PENDING:
+      case 'Created':
         return 'badge-warning';
-      case OrderStatus.PROCESSING:
+      case 'InProgress':
         return 'badge-info';
-      case OrderStatus.SHIPPED:
+      case 'Completed':
         return 'badge-primary';
-      case OrderStatus.DELIVERED:
-        return 'badge-success';
-      case OrderStatus.CANCELLED:
+      case 'Cancelled':
         return 'badge-error';
       default:
         return 'badge-ghost';
@@ -74,10 +74,10 @@ const AdminOrders: React.FC = () => {
               </thead>
               <tbody>
                 {orders.map(order => (
-                  <tr key={order.id} id={order.id}>
-                    <td>#{order.id.substring(0, 8)}</td>
+                  <tr key={order.id} id={String(order.id)}>
+                    <td>#{order.id}</td>
                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>{order.userId.substring(0, 8)}</td>
+                    <td>{String(order.userId)}</td>
                     <td>{order.items.length}</td>
                     <td>${order.totalPrice.toFixed(2)}</td>
                     <td>
@@ -107,7 +107,7 @@ const AdminOrders: React.FC = () => {
           {selectedOrder && (
             <>
               <h3 className="font-bold text-lg mb-4">
-                Order #{selectedOrder.id.substring(0, 8)}
+                Order #{selectedOrder.id}
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -170,7 +170,7 @@ const AdminOrders: React.FC = () => {
               <div>
                 <h4 className="font-semibold mb-2">Update Status:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {Object.values(OrderStatus).map(status => (
+                  {ORDER_STATUSES.map((status) => (
                     <button 
                       key={status} 
                       className={`btn btn-sm ${selectedOrder.status === status ? 'btn-primary' : 'btn-outline'}`}

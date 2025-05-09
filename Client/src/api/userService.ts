@@ -24,6 +24,17 @@ const userService = {
     }
   },
 
+  getUsers: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/user/all`, { 
+        withCredentials: true 
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data?.message || 'Ошибка при получении списка пользователей';
+    }
+  },
+
   updateUser: async (userData: { username?: string, email?: string, password?: string }) => {
     try {
       const response = await axios.patch(`${API_URL}/api/user`, userData, { 
@@ -35,7 +46,7 @@ const userService = {
     }
   },
 
-  updateUserById: async (userId: number, userData: { username?: string, email?: string, password?: string }) => {
+  updateUserById: async (userId: number, userData: { username?: string, email?: string, password?: string, role?: string}) => {
     try {
       const response = await axios.patch(`${API_URL}/api/user/${userId}`, userData, { 
         withCredentials: true 
@@ -46,7 +57,7 @@ const userService = {
     }
   },
 
-  createUser: async (userData: { username: string, email: string, password: string }) => {
+  createUser: async (userData: { username: string, email: string, password: string, role: string }) => {
     try {
       const response = await axios.post(`${API_URL}/api/user`, userData, { 
         withCredentials: true 

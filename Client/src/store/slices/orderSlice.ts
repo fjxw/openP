@@ -69,6 +69,17 @@ export const updateOrderStatus = createAsyncThunk(
   }
 );
 
+export const fetchAllOrders = createAsyncThunk(
+  'orders/fetchAllOrders',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await orderService.getAllOrders();
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Не удалось получить все заказы');
+    }
+  }
+);
+
 const orderSlice = createSlice({
   name: 'orders',
   initialState,
@@ -151,6 +162,19 @@ const orderSlice = createSlice({
         }
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      .addCase(fetchAllOrders.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
+        state.isLoading = false;
+        state.orders = action.payload;
+      })
+      .addCase(fetchAllOrders.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })

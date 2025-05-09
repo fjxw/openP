@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import type { User } from '../../types';
 import userService from '../../api/userService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
 
 const AdminUsers: React.FC = () => {
-  const dispatch = useAppDispatch();
   const { user: currentUser } = useAppSelector(state => state.auth);
   
   const [users, setUsers] = useState<User[]>([]);
@@ -19,16 +18,16 @@ const AdminUsers: React.FC = () => {
     username: '',
     email: '',
     password: '',
-    role: UserRole.USER
+    role: 'User'  
   });
   
-  // Fetch users on component mount
+
   useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await userService.getAllUsers();
+        const data = await userService.getUsers();
         setUsers(data);
       } catch (err: any) {
         setError(err.message || 'Failed to load users');
@@ -45,7 +44,7 @@ const AdminUsers: React.FC = () => {
       username: '',
       email: '',
       password: '',
-      role: UserRole.USER
+      role: 'User' 
     });
     setSelectedUser(null);
   };
@@ -74,7 +73,7 @@ const AdminUsers: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
       ...prev, 
-      [name]: name === 'role' ? value as UserRole : value 
+      [name]: value 
     }));
   };
   
@@ -85,14 +84,12 @@ const AdminUsers: React.FC = () => {
     
     try {
       if (selectedUser) {
-        // Update user role
-        const updatedUser = await userService.updateUserRole(
-          selectedUser.id, 
-          formData.role
+        const updatedUser = await userService.updateUserById(
+          selectedUser.id,
+          { role: formData.role }
         );
         setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
       } else {
-        // Create new user
         const newUser = await userService.createUser({
           username: formData.username,
           email: formData.email,
@@ -162,7 +159,7 @@ const AdminUsers: React.FC = () => {
               <tbody>
                 {users.map(user => (
                   <tr key={user.id} className={user.id === currentUser?.id ? 'bg-base-200' : ''}>
-                    <td>{user.id.substring(0, 8)}</td>
+                    <td>{user.id.toString()}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>
@@ -258,7 +255,7 @@ const AdminUsers: React.FC = () => {
                 onChange={handleChange}
                 required
               >
-                {Object.values(UserRole).map(role => (
+                {['User', 'Admin'].map(role => (
                   <option key={role} value={role}>{role}</option>
                 ))}
               </select>
