@@ -1,14 +1,15 @@
 namespace OpenP.DTOs.Cart;
 
-public record CartDto
+public class CartDto
 {
-    public int CartId { get; init; }
-    public int UserId { get; init; }
-    public List<CartItemDto> Items { get; init; } = new List<CartItemDto>();
+    public int CartId { get; set; }
+    public int UserId { get; set; }
+    public List<CartItemDto> Items { get; set; } = new List<CartItemDto>();
+    public decimal TotalPrice { get; set; } // Добавляем свойство для общей суммы
 }
 
-public record CartItemDto
+public class CartItemDto
 {
-    public int ProductId { get; init; }
-    public int Quantity { get; init; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
 }

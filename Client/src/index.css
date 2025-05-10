@@ -1,2 +1,14 @@
 @import "tailwindcss";
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+}
+
 @plugin "daisyui"

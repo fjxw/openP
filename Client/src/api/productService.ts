@@ -33,10 +33,10 @@ const productService = {
     }
   },
 
-  getProductsByPriceRange: async (minPrice: number, maxPrice: number, pageNumber = 1, pageSize = 10) => {
+  getProductsByPriceRange: async (minPrice: number, maxPrice: number, category?: string, pageNumber = 1, pageSize = 10) => {
     try {
       const response = await axios.get(`${API_URL}/api/product/price`, {
-        params: { minPrice, maxPrice, pageNumber, pageSize }
+        params: { minPrice, maxPrice, category, pageNumber, pageSize }
       });
       return response.data;
     } catch (error: any) {
@@ -100,21 +100,34 @@ const productService = {
   uploadProductImage: async (id: number, imageFile: File) => {
     try {
       const formData = new FormData();
-      formData.append('file', imageFile);
+      
+      // Важно: добавляем файл именно с ключом "image", как ожидает сервер
+      formData.append('image', imageFile);
+      
+      console.log(`Uploading image for product ${id}`, imageFile);
+      
       const response = await axios.post(`${API_URL}/api/product/${id}/image`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      return response.data;
+      
+      console.log('Image upload response:', response.data);
+      
+      // Добавляем временную метку для избежания кэширования изображения
+      const timestamp = new Date().getTime();
+      return `${response.data}?t=${timestamp}`;
     } catch (error: any) {
+      console.error('Error uploading image:', error);
       throw error.response?.data?.message || 'Ошибка при загрузке изображения';
     }
   },
   
   getProductImage: (id: number) => {
-    return `${API_URL}/api/product/${id}/image`;
+    // Добавляем временную метку для избежания кэширования изображения
+    const timestamp = new Date().getTime();
+    return `${API_URL}/api/product/${id}/image?t=${timestamp}`;
   }
 };
 

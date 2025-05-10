@@ -4,15 +4,19 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchCart, updateCartItem, removeFromCart } from '../store/slices/cartSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
+import { useProductDetails } from '../hooks/useProductDetails';
 
 const CartPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { items, totalPrice, isLoading, error } = useAppSelector((state) => state.cart);
+  const { items = [], totalPrice, isLoading: cartLoading, error: cartError } = useAppSelector((state) => state.cart);
+  
+  // Используем наш новый хук для загрузки деталей продуктов
+  const { processedItems, isLoading: productsLoading, loadingError } = useProductDetails(items);
   
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
-  
+
   const handleQuantityChange = (productId: number, quantity: number) => {
     dispatch(updateCartItem({ productId, quantity }));
   };
@@ -20,6 +24,12 @@ const CartPage: React.FC = () => {
   const handleRemoveItem = (productId: number) => {
     dispatch(removeFromCart(productId));
   };
+
+  // Показываем загрузку, только если загружается корзина или продукты
+  const isLoading = cartLoading || productsLoading;
+  
+  // Объединяем ошибки из разных источников
+  const error = cartError || loadingError;
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -29,7 +39,7 @@ const CartPage: React.FC = () => {
     return <Alert type="error" message={error} />;
   }
 
-  if (items.length === 0) {
+  if (processedItems.length === 0 || processedItems.reduce((total, item) => total + item.quantity, 0) === 0) {
     return (
       <div className="text-center py-16">
         <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
@@ -57,39 +67,46 @@ const CartPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr key={item.product.id}>
-                    <td>{item.product.name}</td>
-                    <td>
-                      <div className="flex items-center">
+                {processedItems.map((item) => {
+                  const prod = item.product;
+                  return (
+                    <tr key={prod.productId}>
+                      <td>{prod.name}</td>
+                      <td>
+                        <div className="flex items-center">
+                          <button
+                            className="btn btn-sm"
+                            onClick={() =>
+                              handleQuantityChange(prod.productId, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                          >
+                            -
+                          </button>
+                          <span className="mx-2">{item.quantity}</span>
+                          <button
+                            className="btn btn-sm"
+                            onClick={() =>
+                              handleQuantityChange(prod.productId, item.quantity + 1)
+                            }
+                            disabled={item.quantity >= prod.quantity}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td>${(prod.price * item.quantity).toFixed(2)}</td>
+                      <td>
                         <button
-                          className="btn btn-sm"
-                          onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
+                          className="btn btn-sm btn-error"
+                          onClick={() => handleRemoveItem(prod.productId)}
                         >
-                          -
+                          Remove
                         </button>
-                        <span className="mx-2">{item.quantity}</span>
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.product.quantity}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td>${(item.product.price * item.quantity).toFixed(2)}</td>
-                    <td>
-                      <button 
-                        className="btn btn-sm btn-error" 
-                        onClick={() => handleRemoveItem(item.product.id)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -103,7 +120,7 @@ const CartPage: React.FC = () => {
               
               <div className="flex justify-between mb-2">
                 <span>Subtotal</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${totalPrice?.toFixed(2) || '0.00'}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span>Shipping</span>
@@ -111,7 +128,7 @@ const CartPage: React.FC = () => {
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${totalPrice?.toFixed(2) || '0.00'}</span>
               </div>
               
               <div className="card-actions mt-6">

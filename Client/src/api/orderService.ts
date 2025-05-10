@@ -65,9 +65,9 @@ const orderService = {
   },
 
   updateOrder: async (id: number, orderData: { 
-    address?: string, 
-    phoneNumber?: string, 
-    status?: string 
+    Address?: string, 
+    PhoneNumber?: string, 
+    Status?: string 
   }) => {
     try {
       const response = await axios.patch(`${API_URL}/api/order/${id}`, orderData, { 

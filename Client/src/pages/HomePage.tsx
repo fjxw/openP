@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchProducts, fetchCategories } from '../store/slices/productsSlice';
+import { fetchProducts, fetchCategories, fetchProductsByCategory, searchProducts, fetchProductsByPriceRange } from '../store/slices/productsSlice';
 import ProductCard from '../components/ui/ProductCard';
 import CategoryFilter from '../components/ui/CategoryFilter';
 import PriceFilter from '../components/ui/PriceFilter';
@@ -17,7 +17,6 @@ const HomePage: React.FC = () => {
     state => state.products
   );
 
-  // Get filters from URL
   const category = searchParams.get('category') || undefined;
   const search = searchParams.get('search') || undefined;
   const minPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : undefined;
@@ -29,12 +28,45 @@ const HomePage: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(
-      fetchProducts({
-        pageNumber: page,
-        pageSize: 12
-      })
-    );
+    // Используем разные действия в зависимости от активных фильтров
+    const fetchFilteredProducts = async () => {
+      try {
+        if (search) {
+          // Если есть поисковый запрос, используем поиск
+          await dispatch(searchProducts({
+            name: search,
+            pageNumber: page,
+            pageSize: 12
+          }));
+        } else if (minPrice !== undefined || maxPrice !== undefined) {
+          // Если установлен диапазон цен (возможно вместе с категорией)
+          await dispatch(fetchProductsByPriceRange({
+            minPrice: minPrice || 0,
+            maxPrice: maxPrice || 100000, // Большое значение по умолчанию
+            category, // Передаем категорию, если она выбрана
+            pageNumber: page,
+            pageSize: 12
+          }));
+        } else if (category) {
+          // Если выбрана только категория без фильтра цены
+          await dispatch(fetchProductsByCategory({
+            category,
+            pageNumber: page,
+            pageSize: 12
+          }));
+        } else {
+          // Без фильтров - получаем все товары
+          await dispatch(fetchProducts({
+            pageNumber: page,
+            pageSize: 12
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchFilteredProducts();
   }, [dispatch, category, search, minPrice, maxPrice, page]);
 
   const updateFilters = (filters: Record<string, string | undefined>) => {
@@ -58,13 +90,17 @@ const HomePage: React.FC = () => {
   };
 
   const handleCategoryChange = (newCategory: string | undefined) => {
-    updateFilters({ category: newCategory });
+    updateFilters({ 
+      category: newCategory,
+      search: undefined // Сбрасываем поиск при изменении категории
+    });
   };
 
   const handlePriceChange = (min: number | undefined, max: number | undefined) => {
     updateFilters({
       minPrice: min?.toString(),
-      maxPrice: max?.toString()
+      maxPrice: max?.toString(),
+      search: undefined // Сбрасываем поиск при изменении цены
     });
   };
 
@@ -74,7 +110,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Our Products</h1>
+      <h1 className="text-3xl font-bold mb-6">Главная</h1>
       
       {error && <Alert type="error" message={error} />}
       
@@ -106,7 +142,7 @@ const HomePage: React.FC = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.productId} product={product} />
                 ))}
               </div>
               

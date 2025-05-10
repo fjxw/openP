@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { deleteAccount, logout } from '../store/slices/authSlice';
+import { deleteAccount, logout, updateUser } from '../store/slices/authSlice';
 import Alert from '../components/ui/Alert';
+import userService from '../api/userService';
+import { useTheme } from '../hooks/useTheme';
+import { translateRoleToRussian } from '../utils/translations';
 
 const ProfilePage: React.FC = () => {
   const { user, error } = useAppSelector(state => state.auth);
@@ -10,12 +13,110 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [isEditing, setIsEditing] = useState(false);
+  const { theme, changeTheme } = useTheme();
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+    password: '',
+    confirmPassword: ''
+  });
 
   const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    changeTheme(newTheme);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleEditToggle = () => {
+    if (!isEditing) {
+      setFormData({
+        username: user?.username || '',
+        email: user?.email || '',
+        password: '',
+        confirmPassword: ''
+      });
+      setUpdateError(null);
+      setSuccessMessage(null);
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const validateForm = () => {
+    if (
+      formData.username === user?.username && 
+      formData.email === user?.email && 
+      !formData.password
+    ) {
+      setUpdateError('Необходимо внести изменения хотя бы в одно поле');
+      return false;
+    }
+    
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setUpdateError('Пароли не совпадают');
+      return false;
+    }
+    
+    if (formData.password && formData.password.length < 6) {
+      setUpdateError('Пароль должен содержать не менее 6 символов');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setLoading(true);
+    setUpdateError(null);
+    setSuccessMessage(null);
+    
+    try {
+      const updateData: any = {};
+      
+      if (formData.username !== user?.username) {
+        updateData.username = formData.username;
+      }
+      
+      if (formData.email !== user?.email) {
+        updateData.email = formData.email;
+      }
+      
+      if (formData.password) {
+        updateData.password = formData.password;
+      }
+      
+      const updatedUserData = await userService.updateUser(updateData);
+      
+      // Обновляем данные пользователя в Redux store без дополнительного запроса
+      dispatch(updateUser({
+        ...user,
+        username: formData.username || user?.username,
+        email: formData.email || user?.email
+      }));
+      
+      setSuccessMessage('Профиль успешно обновлен');
+      setIsEditing(false);
+    } catch (error: any) {
+      setUpdateError(error.message || 'Ошибка при обновлении профиля');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -42,13 +143,15 @@ const ProfilePage: React.FC = () => {
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body items-center text-center">
             <div className="avatar">
-              <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center text-3xl">
-                {user.username.charAt(0).toUpperCase()}
+              <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center relative">
+                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
               </div>
             </div>
             <h2 className="card-title mt-4">{user.username}</h2>
             <p className="text-sm text-gray-500">{user.email}</p>
-            <div className="badge badge-primary mt-2">{user.role}</div>
+            <div className="badge badge-primary mt-2">{translateRoleToRussian(user.role)}</div>
           </div>
         </div>
       </div>
@@ -56,68 +159,149 @@ const ProfilePage: React.FC = () => {
       <div className="md:col-span-2">
         <div className="card bg-base-100 shadow-lg mb-8">
           <div className="card-body">
-            <h2 className="card-title">Account Settings</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="card-title">Account Settings</h2>
+              <button 
+                className={`btn btn-sm ${isEditing ? 'btn-outline' : 'btn-primary'}`} 
+                onClick={handleEditToggle}
+              >
+                {isEditing ? 'Cancel' : 'Edit Profile'}
+              </button>
+            </div>
             <div className="divider mt-0"></div>
             
             {error && <Alert type="error" message={error} />}
+            {updateError && <Alert type="error" message={updateError} onClose={() => setUpdateError(null)} />}
+            {successMessage && <Alert type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />}
             
-            <div className="form-control w-full mb-4">
-              <label className="label">
-                <span className="label-text">Email</span>
-              </label>
-              <input 
-                type="text" 
-                value={user.email} 
-                className="input input-bordered w-full" 
-                disabled 
-              />
-            </div>
-            
-            <div className="form-control w-full mb-4">
-              <label className="label">
-                <span className="label-text">Username</span>
-              </label>
-              <input 
-                type="text" 
-                value={user.username} 
-                className="input input-bordered w-full" 
-                disabled 
-              />
-            </div>
-            
-            <div className="form-control w-full mb-8">
-              <label className="label">
-                <span className="label-text">Theme</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
+            {isEditing ? (
+              <form onSubmit={handleProfileUpdate}>
+                <div className="form-control w-full mb-4">
+                  <label className="label">
+                    <span className="label-text">Username</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    name="username"
+                    value={formData.username} 
+                    onChange={handleInputChange}
+                    className="input input-bordered w-full" 
+                    required
+                  />
+                </div>
+                
+                <div className="form-control w-full mb-4">
+                  <label className="label">
+                    <span className="label-text">Email</span>
+                  </label>
+                  <input 
+                    type="email"
+                    name="email"
+                    value={formData.email} 
+                    onChange={handleInputChange}
+                    className="input input-bordered w-full" 
+                    required
+                  />
+                </div>
+                
+                <div className="form-control w-full mb-4">
+                  <label className="label">
+                    <span className="label-text">New Password</span>
+                  </label>
+                  <input 
+                    type="password"
+                    name="password"
+                    value={formData.password} 
+                    onChange={handleInputChange}
+                    className="input input-bordered w-full" 
+                    placeholder="Leave empty to keep current password"
+                  />
+                </div>
+                
+                {formData.password && (
+                  <div className="form-control w-full mb-6">
+                    <label className="label">
+                      <span className="label-text">Confirm New Password</span>
+                    </label>
+                    <input 
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword} 
+                      onChange={handleInputChange}
+                      className="input input-bordered w-full" 
+                      required={!!formData.password}
+                    />
+                  </div>
+                )}
+                
                 <button 
-                  className={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => handleThemeChange('light')}
+                  type="submit" 
+                  className="btn btn-primary w-full"
+                  disabled={loading}
                 >
-                  Light
+                  {loading ? <span className="loading loading-spinner loading-sm"></span> : 'Save Changes'}
                 </button>
-                <button 
-                  className={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => handleThemeChange('dark')}
-                >
-                  Dark
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={handleLogout} className="btn btn-outline btn-primary">
-                Logout
-              </button>
-              <button onClick={() => setIsDeleteModalOpen(true)} className="btn btn-error">
-                Delete Account
-              </button>
-            </div>
+              </form>
+            ) : (
+              <>
+                <div className="form-control w-full mb-4">
+                  <label className="label">
+                    <span className="label-text">Email</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={user.email} 
+                    className="input input-bordered w-full" 
+                    disabled 
+                  />
+                </div>
+                
+                <div className="form-control w-full mb-4">
+                  <label className="label">
+                    <span className="label-text">Username</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={user.username} 
+                    className="input input-bordered w-full" 
+                    disabled 
+                  />
+                </div>
+                
+                <div className="form-control w-full mb-8">
+                  <label className="label">
+                    <span className="label-text">Theme</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button 
+                      className={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-outline'}`}
+                      onClick={() => handleThemeChange('light')}
+                    >
+                      Light
+                    </button>
+                    <button 
+                      className={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-outline'}`}
+                      onClick={() => handleThemeChange('dark')}
+                    >
+                      Dark
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button onClick={handleLogout} className="btn btn-outline btn-primary">
+                    Logout
+                  </button>
+                  <button onClick={() => setIsDeleteModalOpen(true)} className="btn btn-error">
+                    Delete Account
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
       
-      {/* Delete Account Modal */}
       <dialog id="delete_modal" className={`modal ${isDeleteModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg">Delete Account</h3>

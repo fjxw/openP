@@ -58,11 +58,28 @@ namespace OpenP.Repositories
             if (product.Quantity < quantity)
                 throw new InvalidOperationException("Недостаточно товара на складе");
             var cart = await GetCartByUserIdAsync(userId);
+            
+            // Добавляем проверку на null
+            if (cart == null)
+                throw new InvalidOperationException("Корзина не найдена");
+                
             var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
             if (cartItem != null)
             {
                 cartItem.Quantity = quantity;
                 context.CartItems.Update(cartItem);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                // Если товара нет в корзине, добавляем его
+                var item = new CartItem 
+                { 
+                    CartId = cart.CartId, 
+                    ProductId = productId, 
+                    Quantity = quantity 
+                };
+                context.CartItems.Add(item);
                 await context.SaveChangesAsync();
             }
         }

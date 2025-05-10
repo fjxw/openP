@@ -12,7 +12,7 @@ namespace OpenP.Controllers
     public class AuthController(AuthService authService, IUserRepository userRepository) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
         {
             await authService.RegisterUserAsync(request.Email, request.Username, request.Password);
             var result = await authService.LoginAsync(request.Email, request.Password);

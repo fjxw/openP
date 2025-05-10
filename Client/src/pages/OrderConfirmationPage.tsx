@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchOrderById, clearCurrentOrder } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
+import productService from '../api/productService';
 
 const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,7 +49,7 @@ const OrderConfirmationPage: React.FC = () => {
       
       <div className="card bg-base-100 shadow-lg mb-8">
         <div className="card-body">
-          <h2 className="card-title">Order #{String(currentOrder.id).substring(0, 8)}</h2>
+          <h2 className="card-title">Order #{String(currentOrder.orderId).substring(0, 8)}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <h3 className="font-bold">Shipping Address:</h3>
@@ -80,32 +81,32 @@ const OrderConfirmationPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentOrder.items.map(item => (
-                  <tr key={item.product.id}>
+                {currentOrder.items?.map(item => (
+                  <tr key={item.productId}>
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="avatar">
-                          <div className="w-12 h-12">
+                          <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
                             <img 
-                              src={item.product.image || "https://picsum.photos/100/100"} 
-                              alt={item.product.name} 
+                              src={productService.getProductImage(item.productId) || "https://picsum.photos/100/100"} 
+                              alt={item.product?.name || "Product"} 
                               className="object-cover"
                             />
                           </div>
                         </div>
-                        <div>{item.product.name}</div>
+                        <div>{item.product?.name || "Unknown Product"}</div>
                       </div>
                     </td>
-                    <td>${item.product.price.toFixed(2)}</td>
+                    <td>${item.product?.price?.toFixed(2) || "0.00"}</td>
                     <td>{item.quantity}</td>
-                    <td>${(item.product.price * item.quantity).toFixed(2)}</td>
+                    <td>${((item.product?.price || 0) * item.quantity).toFixed(2)}</td>
                   </tr>
-                ))}
+                )) || <tr><td colSpan={4} className="text-center">Нет товаров в заказе</td></tr>}
               </tbody>
               <tfoot>
                 <tr>
                   <td colSpan={3} className="text-right font-bold">Total:</td>
-                  <td className="font-bold">${currentOrder.totalPrice.toFixed(2)}</td>
+                  <td className="font-bold">${currentOrder.totalPrice?.toFixed(2) || '0.00'}</td>
                 </tr>
               </tfoot>
             </table>

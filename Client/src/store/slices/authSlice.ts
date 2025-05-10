@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../api/authService';
-import type { AuthState, CreateUserRequest, LoginUserDto } from '../../types';
+import type { AuthState, CreateUserRequest, LoginUserDto, UserDto } from '../../types';
 import userService from '../../api/userService';
 
 const initialState: AuthState = {
@@ -65,6 +65,17 @@ export const deleteAccount = createAsyncThunk(
     try {
       const user = await userService.deleteCurrentUser()
       return user;
+    } catch (error) {
+      return rejectWithValue(null);
+    }
+  }
+);
+
+export const updateUser = createAsyncThunk(
+  'auth/updateUser',
+  async (userData: Partial<UserDto>, { rejectWithValue }) => {
+    try {
+      return userData;
     } catch (error) {
       return rejectWithValue(null);
     }
@@ -154,6 +165,14 @@ const authSlice = createSlice({
       .addCase(deleteAccount.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        if (state.user && action.payload) {
+          state.user = {
+            ...state.user,
+            ...action.payload
+          };
+        }
       });
   }
 });

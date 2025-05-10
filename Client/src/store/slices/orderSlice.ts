@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { OrderState, Order } from '../../types';
-import orderService  from '../../api/orderService';
+import type { OrderState, Order, OrderWithProductDetails, CartItemWithProduct, CartItem } from '../../types';
+import orderService from '../../api/orderService';
+import productService from '../../api/productService';
 
 const initialState: OrderState = {
   orders: [],
@@ -40,7 +41,30 @@ export const fetchUserOrders = createAsyncThunk(
   'orders/fetchUserOrders',
   async (_, { rejectWithValue }) => {
     try {
-      return await orderService.getOrders();
+      const ordersFromApi = await orderService.getOrders();
+      
+      // Преобразование формата данных API в формат клиента
+      const orders = ordersFromApi.map((order: any) => ({
+        ...order,
+        items: order.orderItems || [],
+        totalPrice: order.totalAmount
+      })) as Order[];
+      
+      const ordersWithProducts = await Promise.all(orders.map(async (order: Order) => {
+        const itemsWithProducts = await Promise.all(order.items.map(async (item: CartItem) => {
+          try {
+            const product = await productService.getProductById(item.productId);
+            return { ...item, product } as CartItemWithProduct;
+          } catch (error) {
+            console.error(`Failed to fetch product ${item.productId}:`, error);
+            return item;
+          }
+        }));
+        
+        return { ...order, items: itemsWithProducts } as OrderWithProductDetails;
+      }));
+      
+      return ordersWithProducts;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Не удалось получить заказы');
     }
@@ -51,7 +75,26 @@ export const fetchOrderById = createAsyncThunk(
   'orders/fetchOrderById',
   async (id: number, { rejectWithValue }) => {
     try {
-      return await orderService.getOrderById(id);
+      const orderFromApi = await orderService.getOrderById(id);
+      
+      // Преобразование формата данных API в формат клиента
+      const order = {
+        ...orderFromApi,
+        items: orderFromApi.orderItems || [],
+        totalPrice: orderFromApi.totalAmount
+      } as Order;
+      
+      const itemsWithProducts = await Promise.all(order.items.map(async (item: CartItem) => {
+        try {
+          const product = await productService.getProductById(item.productId);
+          return { ...item, product } as CartItemWithProduct;
+        } catch (error) {
+          console.error(`Failed to fetch product ${item.productId}:`, error);
+          return item;
+        }
+      }));
+      
+      return { ...order, items: itemsWithProducts } as OrderWithProductDetails;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Не удалось получить заказ');
     }
@@ -62,7 +105,9 @@ export const updateOrderStatus = createAsyncThunk(
   'orders/updateOrderStatus',
   async ({ id, status }: { id: number; status: string }, { rejectWithValue }) => {
     try {
-      return await orderService.updateOrder(id, { status });
+      await orderService.updateOrder(id, { Status: status });
+      // Возвращаем id и новый статус, так как API не возвращает обновленный объект
+      return { orderId: id, status };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Не удалось обновить статус');
     }
@@ -73,7 +118,30 @@ export const fetchAllOrders = createAsyncThunk(
   'orders/fetchAllOrders',
   async (_, { rejectWithValue }) => {
     try {
-      return await orderService.getAllOrders();
+      const ordersFromApi = await orderService.getAllOrders();
+      
+      // Преобразование формата данных API в формат клиента
+      const orders = ordersFromApi.map((order: any) => ({
+        ...order,
+        items: order.orderItems || [],
+        totalPrice: order.totalAmount
+      })) as Order[];
+      
+      const ordersWithProducts = await Promise.all(orders.map(async (order: Order) => {
+        const itemsWithProducts = await Promise.all(order.items.map(async (item: CartItem) => {
+          try {
+            const product = await productService.getProductById(item.productId);
+            return { ...item, product } as CartItemWithProduct;
+          } catch (error) {
+            console.error(`Failed to fetch product ${item.productId}:`, error);
+            return item;
+          }
+        }));
+        
+        return { ...order, items: itemsWithProducts } as OrderWithProductDetails;
+      }));
+      
+      return ordersWithProducts;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Не удалось получить все заказы');
     }
@@ -125,7 +193,7 @@ const orderSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
+      .addCase(fetchUserOrders.fulfilled, (state, action: PayloadAction<OrderWithProductDetails[]>) => {
         state.isLoading = false;
         state.orders = action.payload;
       })
@@ -138,7 +206,7 @@ const orderSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchOrderById.fulfilled, (state, action: PayloadAction<Order>) => {
+      .addCase(fetchOrderById.fulfilled, (state, action: PayloadAction<OrderWithProductDetails>) => {
         state.isLoading = false;
         state.currentOrder = action.payload;
       })
@@ -151,14 +219,25 @@ const orderSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(updateOrderStatus.fulfilled, (state, action: PayloadAction<Order>) => {
+      .addCase(updateOrderStatus.fulfilled, (state, action: PayloadAction<{ orderId: number; status: string }>) => {
         state.isLoading = false;
-        const index = state.orders.findIndex(order => order.id === action.payload.id);
+        const { orderId, status } = action.payload;
+
+        // Обновление заказа в списке заказов
+        const index = state.orders.findIndex(order => order.orderId === orderId);
         if (index !== -1) {
-          state.orders[index] = action.payload;
+          state.orders[index] = {
+            ...state.orders[index],
+            status
+          };
         }
-        if (state.currentOrder?.id === action.payload.id) {
-          state.currentOrder = action.payload;
+
+        // Обновление текущего заказа, если он открыт
+        if (state.currentOrder?.orderId === orderId) {
+          state.currentOrder = {
+            ...state.currentOrder,
+            status
+          };
         }
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
@@ -170,7 +249,7 @@ const orderSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
+      .addCase(fetchAllOrders.fulfilled, (state, action: PayloadAction<OrderWithProductDetails[]>) => {
         state.isLoading = false;
         state.orders = action.payload;
       })

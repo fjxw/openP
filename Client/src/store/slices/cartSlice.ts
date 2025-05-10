@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { CartState } from '../../types';
+import type { CartState, CartItem } from '../../types';
 import cartService from "../../api/cartService";
 
 const initialState: CartState = {
@@ -22,10 +22,46 @@ export const fetchCart = createAsyncThunk(
 
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ productId, quantity }: { productId: number; quantity: number }, { rejectWithValue }) => {
+  async ({ productId, quantity }: { productId: number; quantity: number }, { dispatch, getState, rejectWithValue }) => {
     try {
-      return await cartService.addItemToCart(productId, quantity);
+      // Оптимистичное обновление перед запросом к серверу
+      const state = getState() as { cart: CartState };
+      const currentItems = state.cart.items || [];
+      
+      // Создаем копию текущих элементов
+      const updatedItems: CartItem[] = [...currentItems];
+      
+      // Проверяем, есть ли уже этот товар в корзине
+      const existingItemIndex = updatedItems.findIndex(item => item.productId === productId);
+      
+      if (existingItemIndex >= 0) {
+        // Если товар уже в корзине, увеличиваем количество
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + quantity
+        };
+      } else {
+        // Иначе добавляем новый товар
+        updatedItems.push({ productId, quantity });
+      }
+      
+      // Сразу диспатчим локальное обновление корзины
+      dispatch(optimisticUpdateCart(updatedItems));
+      
+      // Затем делаем реальный запрос к серверу
+      const response = await cartService.addItemToCart(productId, quantity);
+      return {
+        items: response.items || [],
+        totalPrice: response.totalPrice || 0
+      };
     } catch (error: any) {
+      // В случае ошибки, восстановим предыдущее состояние через запрос актуальной корзины
+      try {
+        const response = await cartService.getCart();
+        dispatch(fetchCart.fulfilled(response, '', undefined));
+      } catch (fetchError) {
+        console.error("Failed to restore cart state:", fetchError);
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to add item to cart');
     }
   }
@@ -33,10 +69,43 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
-  async ({ productId, quantity }: { productId: number; quantity: number }, { rejectWithValue }) => {
+  async ({ productId, quantity }: { productId: number; quantity: number }, { dispatch, getState, rejectWithValue }) => {
     try {
-      return await cartService.updateItemQuantity(productId, quantity);
+      // Оптимистичное обновление перед запросом к серверу
+      const state = getState() as { cart: CartState };
+      const currentItems = state.cart.items || [];
+      
+      // Создаем копию текущих элементов
+      const updatedItems: CartItem[] = [...currentItems];
+      
+      // Находим индекс товара в корзине
+      const existingItemIndex = updatedItems.findIndex(item => item.productId === productId);
+      
+      if (existingItemIndex >= 0) {
+        // Обновляем количество
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: quantity
+        };
+        
+        // Сразу диспатчим локальное обновление корзины
+        dispatch(optimisticUpdateCart(updatedItems));
+      }
+      
+      // Затем делаем реальный запрос к серверу
+      const response = await cartService.updateItemQuantity(productId, quantity);
+      return {
+        items: response.items || [],
+        totalPrice: response.totalPrice || 0
+      };
     } catch (error: any) {
+      // В случае ошибки, восстановим предыдущее состояние через запрос актуальной корзины
+      try {
+        const response = await cartService.getCart();
+        dispatch(fetchCart.fulfilled(response, '', undefined));
+      } catch (fetchError) {
+        console.error("Failed to restore cart state:", fetchError);
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to update cart item');
     }
   }
@@ -71,6 +140,10 @@ const cartSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    optimisticUpdateCart: (state, action) => {
+      // Локально обновляем состояние корзины без ожидания ответа сервера
+      state.items = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -93,8 +166,8 @@ const cartSlice = createSlice({
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.items;
-        state.totalPrice = action.payload.totalPrice;
+        state.items = action.payload.items || [];
+        state.totalPrice = action.payload.totalPrice || 0;
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.isLoading = false;
@@ -106,8 +179,8 @@ const cartSlice = createSlice({
       })
       .addCase(updateCartItem.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.items;
-        state.totalPrice = action.payload.totalPrice;
+        state.items = action.payload.items || [];
+        state.totalPrice = action.payload.totalPrice || 0;
       })
       .addCase(updateCartItem.rejected, (state, action) => {
         state.isLoading = false;
@@ -142,5 +215,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { clearError } = cartSlice.actions;
+export const { clearError, optimisticUpdateCart } = cartSlice.actions;
 export default cartSlice.reducer;

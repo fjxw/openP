@@ -5,8 +5,8 @@ import { logout } from '../../store/slices/authSlice';
 
 
 const Header: React.FC = () => {
-  const { isAuthenticated, user } = useAppSelector(state => state.auth);
-  const { items } = useAppSelector(state => state.cart);
+  const { isAuthenticated, user, isAdmin } = useAppSelector(state => state.auth);
+  const { items = [] } = useAppSelector(state => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,8 +24,8 @@ const Header: React.FC = () => {
   };
 
   return (
-    <div className="navbar bg-base-100 shadow-lg">
-      <div className="navbar-start">
+    <div className="navbar bg-base-100 shadow-lg px-4">
+      <div className="navbar-start flex-none">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,47 +33,47 @@ const Header: React.FC = () => {
             </svg>
           </div>
           <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li><Link to="/">Home</Link></li>
+            <li><Link to="/">Главная</Link></li>
             {isAuthenticated && (
               <>
-                <li><Link to="/orders">My Orders</Link></li>
-                <li><Link to="/profile">Profile</Link></li>
+                <li><Link to="/orders">Мои заказы</Link></li>
+                <li><Link to="/profile">Профиль</Link></li>
               </>
             )}
-            {user?.role === 'Admin' && (
+            {isAdmin && (
               <li>
-                <a>Admin</a>
+                <a>Админ</a>
                 <ul className="p-2">
-                  <li><Link to="/admin">Dashboard</Link></li>
-                  <li><Link to="/admin/products">Products</Link></li>
-                  <li><Link to="/admin/orders">Orders</Link></li>
-                  <li><Link to="/admin/users">Users</Link></li>
+                  <li><Link to="/admin">Панель управления</Link></li>
+                  <li><Link to="/admin/products">Товары</Link></li>
+                  <li><Link to="/admin/orders">Заказы</Link></li>
+                  <li><Link to="/admin/users">Пользователи</Link></li>
                 </ul>
               </li>
             )}
           </ul>
         </div>
-        <Link to="/" className="btn btn-ghost text-xl">E-Shop</Link>
+        <Link to="/" className="text-xl font-bold ml-4">openP</Link>
       </div>
       
-      <div className="navbar-center hidden lg:flex">
+      <div className="navbar-center hidden lg:flex mx-4">
         <ul className="menu menu-horizontal px-1">
-          <li><Link to="/">Home</Link></li>
+          <li><Link to="/">Главная</Link></li>
           {isAuthenticated && (
             <>
-              <li><Link to="/orders">My Orders</Link></li>
-              <li><Link to="/profile">Profile</Link></li>
+              <li><Link to="/orders">Мои заказы</Link></li>
+              <li><Link to="/profile">Профиль</Link></li>
             </>
           )}
-          {user?.role === 'Admin' && (
+          {isAdmin && (
             <li>
               <details>
-                <summary>Admin</summary>
+                <summary>Админ</summary>
                 <ul className="p-2 bg-base-100 z-10">
-                  <li><Link to="/admin">Dashboard</Link></li>
-                  <li><Link to="/admin/products">Products</Link></li>
-                  <li><Link to="/admin/orders">Orders</Link></li>
-                  <li><Link to="/admin/users">Users</Link></li>
+                  <li><Link to="/admin">Панель управления</Link></li>
+                  <li><Link to="/admin/products">Товары</Link></li>
+                  <li><Link to="/admin/orders">Заказы</Link></li>
+                  <li><Link to="/admin/users">Пользователи</Link></li>
                 </ul>
               </details>
             </li>
@@ -81,13 +81,13 @@ const Header: React.FC = () => {
         </ul>
       </div>
       
-      <div className="navbar-end">
-        <form onSubmit={handleSearch} className="form-control mr-2">
-          <div className="input-group">
+      <div className="navbar-end flex items-center">
+        <form onSubmit={handleSearch} className="form-control flex-grow mr-4 max-w-xs">
+          <div className="input-group flex items-center gap-2">
             <input 
               type="text" 
-              placeholder="Search..." 
-              className="input input-bordered input-sm" 
+              placeholder="Поиск..." 
+              className="input input-bordered input-sm flex-grow" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -104,8 +104,10 @@ const Header: React.FC = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            {items.length > 0 && (
-              <span className="badge badge-sm indicator-item">{items.length}</span>
+            {items?.length > 0 && (
+              <span className="badge badge-sm indicator-item">
+                {items.reduce((total, item) => total + item.quantity, 0)}
+              </span>
             )}
           </div>
         </Link>
@@ -115,20 +117,22 @@ const Header: React.FC = () => {
             <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
               <div className="w-10 rounded-full">
                 <div className="flex items-center justify-center h-full bg-primary text-primary-content">
-                  {user?.username?.charAt(0).toUpperCase() || 'U'}
+                  <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold">
+                    {user?.username?.charAt(0).toUpperCase() || 'П'}
+                  </span>
                 </div>
               </div>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-              <li><Link to="/profile">Profile</Link></li>
-              <li><Link to="/orders">Orders</Link></li>
-              <li><a onClick={handleLogout}>Logout</a></li>
+              <li><Link to="/profile">Профиль</Link></li>
+              <li><Link to="/orders">Заказы</Link></li>
+              <li><a onClick={handleLogout}>Выход</a></li>
             </ul>
           </div>
         ) : (
           <div className="flex">
-            <Link to="/login" className="btn btn-sm btn-primary mr-2">Login</Link>
-            <Link to="/register" className="btn btn-sm btn-outline">Register</Link>
+            <Link to="/login" className="btn btn-sm btn-primary mr-2">Вход</Link>
+            <Link to="/register" className="btn btn-sm btn-outline">Регистрация</Link>
           </div>
         )}
       </div>

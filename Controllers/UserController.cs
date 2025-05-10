@@ -64,17 +64,33 @@ namespace OpenP.Controllers
             }
         }
 
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers(int pageNumber = 1, int pageSize = 10)
+        {
+            var users = await userRepository.GetAllUsersAsync(pageNumber, pageSize);
+            var dtos = users.Select(user => new UserDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Username = user.Username,
+                Role = user.Role.ToString()
+            });
+            return Ok(dtos);
+        }
+        
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserDto>> CreateUser(CreateUserRequest request)
         {
-            if (Enum.TryParse<Roles>(request.Role, out var role))
+            if (!Enum.TryParse<Roles>(request.Role, out var role))
             {
                 return BadRequest(new { message = "Некорректная роль" });
             }
             var user = new User
             {
                 Username = request.Username,
+                Email = request.Email,
                 Role = role,
             };
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
@@ -83,13 +99,14 @@ namespace OpenP.Controllers
             {
                 UserId = user.UserId,
                 Username = user.Username,
+                Email = user.Email,
                 Role = user.Role.ToString(),
             });
         }
 
         [HttpPatch]
         [Authorize(Roles = "User, Admin")]
-        public async Task<IActionResult> UpdateUser(CreateUserRequest request)
+        public async Task<IActionResult> UpdateUser(RegisterUserDto request)
         {
             var id = GetCurrentUserId();
             try
@@ -116,6 +133,10 @@ namespace OpenP.Controllers
         {
             try
             {
+                if (!Enum.TryParse<Roles>(request.Role, out var role))
+                {
+                    return BadRequest(new { message = "Некорректная роль" });
+                }
                 var user = await userRepository.GetUserByIdAsync(id);
                 if (request.Username != null)
                     user.Username = request.Username;
@@ -123,6 +144,8 @@ namespace OpenP.Controllers
                     user.Email = request.Email;
                 if (request.Password != null)
                     user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
+                if (request.Role != null)
+                    user.Role = role;
                 await userRepository.UpdateUserAsync(user);
                 return NoContent();
             }

@@ -7,4 +7,7 @@ module.exports = {
   plugins: [
     // DaisyUI is included via the @plugin directive in CSS
   ],
+  daisyui: {
+    themes: ["light", "dark"],
+  },
 }

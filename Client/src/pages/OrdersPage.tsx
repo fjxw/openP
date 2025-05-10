@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUserOrders } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
+import productService from '../api/productService';
 
 const OrdersPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -54,12 +55,12 @@ const OrdersPage: React.FC = () => {
       
       <div className="space-y-6">
         {orders.map(order => (
-          <div key={order.id} className="card bg-base-100 shadow-lg">
+          <div key={order.orderId} className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="card-title">
-                    Order #{order.id}
+                    Order #{order.orderId}
                     <div className={`badge ${getStatusBadgeClass(order.status)}`}>
                       {order.status}
                     </div>
@@ -69,41 +70,41 @@ const OrdersPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">${order.totalPrice.toFixed(2)}</div>
-                  <div className="text-sm">{order.items.length} items</div>
+                  <div className="font-bold">${order.totalPrice}</div>
+                  <div className="text-sm">{order.items?.length || 0} items</div>
                 </div>
               </div>
               
               <div className="divider my-2"></div>
               
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {order.items.slice(0, 4).map(item => (
-                  <div key={item.product.id} className="flex flex-col items-center">
+                {order.items?.slice(0, 4).map(item => (
+                  <div key={item.productId} className="flex flex-col items-center">
                     <div className="avatar mb-2">
-                      <div className="w-16 h-16">
+                      <div className="w-16 h-16 flex items-center justify-center overflow-hidden">
                         <img 
-                          src={item.product.image || "https://picsum.photos/100/100"} 
-                          alt={item.product.name}
+                          src={productService.getProductImage(item.productId) || "https://picsum.photos/100/100"} 
+                          alt={item.product?.name || "Product"}
                           className="object-cover"
                         />
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-medium line-clamp-1">{item.product.name}</div>
+                      <div className="text-sm font-medium line-clamp-1">{item.product?.name || "Unknown Product"}</div>
                       <div className="text-xs">Qty: {item.quantity}</div>
                     </div>
                   </div>
-                ))}
-                {order.items.length > 4 && (
+                )) || []}
+                {(order.items?.length || 0) > 4 && (
                   <div className="flex items-center justify-center">
-                    <div className="text-sm font-medium">+{order.items.length - 4} more items</div>
+                    <div className="text-sm font-medium">+{(order.items?.length || 0) - 4} more items</div>
                   </div>
                 )}
               </div>
               
               <div className="card-actions justify-end mt-4">
                 <Link 
-                  to={`/orders/${order.id}`} 
+                  to={`/orders/${order.orderId}`} 
                   className="btn btn-sm btn-primary"
                 >
                   View Details

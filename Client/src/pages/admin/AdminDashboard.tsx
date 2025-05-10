@@ -134,8 +134,8 @@ const AdminDashboard: React.FC = () => {
               </thead>
               <tbody>
                 {orders.slice(0, 5).map(order => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
+                  <tr key={order.orderId}>
+                    <td>#{order.orderId}</td>
                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td>{order.userId}</td>
                     <td>${order.totalPrice.toFixed(2)}</td>
@@ -150,7 +150,7 @@ const AdminDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td>
-                      <Link to={`/admin/orders#${order.id}`} className="btn btn-xs btn-outline">
+                      <Link to={`/admin/orders#${order.orderId}`} className="btn btn-xs btn-outline">
                         View
                       </Link>
                     </td>

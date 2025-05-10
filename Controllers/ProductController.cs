@@ -47,6 +47,7 @@ namespace OpenP.Controllers
             });
         }
 
+        [IgnoreAntiforgeryToken]
         [HttpGet("{id}/image")]
         public async Task<ActionResult> GetProductImageById(int id)
         {
@@ -97,12 +98,56 @@ namespace OpenP.Controllers
             return CreatedAtAction(nameof(GetProduct), new { id = product.ProductId }, product);
         }
 
+        [IgnoreAntiforgeryToken]
         [HttpPost("{id}/image")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddProductImage(int id, IFormFile file)
+        public async Task<IActionResult> AddProductImage(int id, IFormFile image)
         {
-            await fileService.SaveFile(file, "Products", id.ToString());
-            return Ok();
+            try
+            {
+                if (image == null || image.Length == 0)
+                {
+                    return BadRequest("Изображение не предоставлено");
+                }
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Files", "Products");
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                try
+                {
+                    string searchPattern = $"{id}.*";
+                    var filesToDelete = Directory.GetFiles(folderPath, searchPattern);
+                    
+                    foreach (var file in filesToDelete)
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(file);
+                        }
+                        catch (IOException ex)
+                        {
+                            Console.WriteLine($"Ошибка при удалении файла {file}: {ex.Message}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при поиске файлов для удаления: {ex.Message}");
+                }
+                string extension = Path.GetExtension(image.FileName);
+                string newFileName = $"{id}{extension}";
+                string filePath = Path.Combine(folderPath, newFileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
+                {
+                    await image.CopyToAsync(fileStream);
+                }   
+                return Ok(new { imageUrl = newFileName });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка на сервере: {ex.Message}");
+            }
         }
 
         [HttpPatch("{id}")]
@@ -147,9 +192,22 @@ namespace OpenP.Controllers
         }
         
         [HttpGet("price")]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByPriceRange(decimal minPrice, decimal maxPrice, int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByPriceRange(decimal minPrice, decimal maxPrice, string? category = null, int pageNumber = 1, int pageSize = 10)
         {
-            var products = await productRepository.GetProductsByPriceRangeAsync(minPrice, maxPrice, pageNumber, pageSize);
+            IEnumerable<Product?> products;
+            
+            if (!string.IsNullOrEmpty(category))
+            {
+                if (!Enum.TryParse<Categories>(category, true, out var categoryEnum))
+                    return BadRequest(new { message = $"Неверная категория: {category}" });
+                    
+                products = await productRepository.GetProductsByPriceRangeAsync(minPrice, maxPrice, pageNumber, pageSize, categoryEnum);
+            }
+            else
+            {
+                products = await productRepository.GetProductsByPriceRangeAsync(minPrice, maxPrice, pageNumber, pageSize);
+            }
+            
             var dtos = products.Select(product => new ProductDto
             {
                 ProductId = product.ProductId,

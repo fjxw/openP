@@ -26,10 +26,15 @@ const cartService = {
 
   addItemToCart: async (productId: number, quantity: number) => {
     try {
-      const response = await axios.post(`${API_URL}/api/cart/items`, {
+      await axios.post(`${API_URL}/api/cart/items`, {
         productId,
         quantity
       }, { withCredentials: true });
+      
+      // После успешного добавления, получаем обновленную корзину
+      const response = await axios.get(`${API_URL}/api/cart`, { 
+        withCredentials: true 
+      });
       return response.data;
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при добавлении товара в корзину';
@@ -38,10 +43,22 @@ const cartService = {
 
   updateItemQuantity: async (productId: number, quantity: number) => {
     try {
-      const response = await axios.put(`${API_URL}/api/cart/items/${productId}`, quantity, { 
+      // Отправляем number напрямую, а не как строку JSON
+      const response = await axios.put(
+        `${API_URL}/api/cart/items/${productId}`, 
+        quantity, 
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      // После успешного обновления, получаем актуальную корзину
+      const cartResponse = await axios.get(`${API_URL}/api/cart`, { 
         withCredentials: true 
       });
-      return response.data;
+      return cartResponse.data;
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при обновлении количества товара';
     }

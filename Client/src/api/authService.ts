@@ -27,6 +27,18 @@ const authService = {
     }
   },
 
+  resetPassword: async (email: string, newPassword: string) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/reset-password`, {
+        email,
+        newPassword
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data?.message || 'Ошибка при сбросе пароля';
+    }
+  },
+
   logout: async () => {
     try {
       const response = await axios.get(`${API_URL}/api/auth/logout`, { 

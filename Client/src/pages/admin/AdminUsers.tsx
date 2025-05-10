@@ -4,6 +4,7 @@ import type { User } from '../../types';
 import userService from '../../api/userService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
+import { translateRoleToRussian } from '../../utils/translations';
 
 const AdminUsers: React.FC = () => {
   const { user: currentUser } = useAppSelector(state => state.auth);
@@ -20,7 +21,7 @@ const AdminUsers: React.FC = () => {
     password: '',
     role: 'User'  
   });
-  
+  const [updatingUser, setUpdatingUser] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -84,11 +85,21 @@ const AdminUsers: React.FC = () => {
     
     try {
       if (selectedUser) {
-        const updatedUser = await userService.updateUserById(
-          selectedUser.id,
+        const userId = selectedUser.userId;
+        setUpdatingUser(userId);
+        
+        const result = await userService.updateUserById(
+          userId,
           { role: formData.role }
         );
-        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+        
+        setUsers(users.map(u => 
+          u.userId === userId 
+            ? {...u, role: formData.role} 
+            : u
+        ));
+        
+        closeModal();
       } else {
         const newUser = await userService.createUser({
           username: formData.username,
@@ -96,19 +107,20 @@ const AdminUsers: React.FC = () => {
           password: formData.password,
           role: formData.role
         });
+        
         setUsers([...users, newUser]);
+        closeModal();
       }
-      closeModal();
     } catch (err: any) {
       setError(err.message || 'Failed to save user');
     } finally {
       setIsLoading(false);
+      setUpdatingUser(null);
     }
   };
   
   const handleDeleteUser = async (user: User) => {
-    // Don't allow deleting yourself
-    if (user.id === currentUser?.id) {
+    if (user.userId === currentUser?.userId) {
       setError("You cannot delete your own account");
       return;
     }
@@ -116,14 +128,16 @@ const AdminUsers: React.FC = () => {
     if (confirm(`Are you sure you want to delete ${user.username}?`)) {
       setIsLoading(true);
       setError(null);
+      setUpdatingUser(user.userId);
       
       try {
-        await userService.deleteUser(user.id);
-        setUsers(users.filter(u => u.id !== user.id));
+        await userService.deleteUser(user.userId);
+        setUsers(users.filter(u => u.userId !== user.userId));
       } catch (err: any) {
         setError(err.message || 'Failed to delete user');
       } finally {
         setIsLoading(false);
+        setUpdatingUser(null);
       }
     }
   };
@@ -135,9 +149,9 @@ const AdminUsers: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Manage Users</h1>
+        <h1 className="text-3xl font-bold">Управление пользователями</h1>
         <button className="btn btn-primary" onClick={() => openModal()}>
-          Create User
+          Создать пользователя
         </button>
       </div>
       
@@ -149,36 +163,41 @@ const AdminUsers: React.FC = () => {
             <table className="table">
               <thead>
                 <tr>
-                  <th>User ID</th>
-                  <th>Username</th>
+                  <th>ID</th>
+                  <th>Имя пользователя</th>
                   <th>Email</th>
-                  <th>Role</th>
-                  <th>Actions</th>
+                  <th>Роль</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(user => (
-                  <tr key={user.id} className={user.id === currentUser?.id ? 'bg-base-200' : ''}>
-                    <td>{user.id.toString()}</td>
+                  <tr key={user.userId} className={user.userId === currentUser?.userId ? 'bg-base-200' : ''}>
+                    <td>{user.userId.toString()}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>
-                      <div className="badge badge-primary">{user.role}</div>
+                      <div className="badge badge-primary">{translateRoleToRussian(user.role)}</div>
                     </td>
                     <td>
                       <div className="flex gap-2">
                         <button 
                           className="btn btn-sm btn-outline" 
                           onClick={() => openModal(user)}
+                          disabled={updatingUser === user.userId}
                         >
-                          Edit
+                          {updatingUser === user.userId ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                          ) : (
+                            'Изменить'
+                          )}
                         </button>
                         <button 
                           className="btn btn-sm btn-error" 
                           onClick={() => handleDeleteUser(user)}
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.userId === currentUser?.userId || updatingUser === user.userId}
                         >
-                          Delete
+                          Удалить
                         </button>
                       </div>
                     </td>
@@ -194,13 +213,13 @@ const AdminUsers: React.FC = () => {
       <dialog id="user_modal" className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg">
-            {selectedUser ? 'Edit User' : 'Create User'}
+            {selectedUser ? 'Изменить пользователя' : 'Создать пользователя'}
           </h3>
           
           <form onSubmit={handleSubmit}>
             <div className="form-control mt-4">
               <label className="label">
-                <span className="label-text">Username</span>
+                <span className="label-text">Имя пользователя</span>
               </label>
               <input 
                 type="text" 
@@ -231,7 +250,7 @@ const AdminUsers: React.FC = () => {
             {!selectedUser && (
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Password</span>
+                  <span className="label-text">Пароль</span>
                 </label>
                 <input 
                   type="password" 
@@ -246,7 +265,7 @@ const AdminUsers: React.FC = () => {
             
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Role</span>
+                <span className="label-text">Роль</span>
               </label>
               <select 
                 name="role" 
@@ -256,15 +275,15 @@ const AdminUsers: React.FC = () => {
                 required
               >
                 {['User', 'Admin'].map(role => (
-                  <option key={role} value={role}>{role}</option>
+                  <option key={role} value={role}>{translateRoleToRussian(role)}</option>
                 ))}
               </select>
             </div>
             
             <div className="modal-action">
-              <button type="button" className="btn" onClick={closeModal}>Cancel</button>
+              <button type="button" className="btn" onClick={closeModal}>Отмена</button>
               <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                {isLoading ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
+                {isLoading ? <span className="loading loading-spinner loading-sm"></span> : 'Сохранить'}
               </button>
             </div>
           </form>

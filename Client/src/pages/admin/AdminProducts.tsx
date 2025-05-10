@@ -6,11 +6,14 @@ import {
   createProduct, 
   updateProduct,
   deleteProduct,
-  clearError 
+  clearError,
+  uploadProductImage
 } from '../../store/slices/productsSlice';
 import type { Product } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Alert from '../../components/ui/Alert';
+import productService from '../../api/productService';
+import { translateCategoryToRussian } from '../../utils/translations';
 
 const AdminProducts: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -80,30 +83,46 @@ const AdminProducts: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-  
-    const productFormData = new FormData();
-    if (formData.image) {
-      productFormData.append('image', formData.image);
-    }
-    
-    const productData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      quantity: parseInt(formData.quantity),
-      category: formData.category,
-      imageFile: productFormData 
-    };
-    
     try {
+      const productData = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+        category: formData.category
+      };
+      
+      let productId;
+      
       if (selectedProduct) {
-        await dispatch(updateProduct({
-          id: selectedProduct.id,
+        // Обновляем информацию о продукте
+        const result = await dispatch(updateProduct({
+          id: selectedProduct.productId,
           productData: productData
         }));
+        
+        // Получаем ID продукта из результата
+        if (updateProduct.fulfilled.match(result)) {
+          productId = result.payload.productId;
+        }
       } else {
-        await dispatch(createProduct(productData));
+        // Создаем новый продукт
+        const result = await dispatch(createProduct(productData));
+        
+        // Получаем ID продукта из результата
+        if (createProduct.fulfilled.match(result)) {
+          productId = result.payload.productId;
+        }
       }
+      
+      // Загружаем изображение, если оно выбрано и у нас есть ID продукта
+      if (formData.image && productId) {
+        await dispatch(uploadProductImage({
+          id: productId,
+          imageFile: formData.image
+        }));
+      }
+      
       closeModal();
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -112,16 +131,16 @@ const AdminProducts: React.FC = () => {
   
   const handleDelete = async (product: Product) => {
     if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      await dispatch(deleteProduct(product.id));
+      await dispatch(deleteProduct(product.productId));
     }
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Manage Products</h1>
+        <h1 className="text-3xl font-bold">Управление товарами</h1>
         <button className="btn btn-primary" onClick={() => openModal()}>
-          Add New Product
+          Добавить товар
         </button>
       </div>
       
@@ -140,22 +159,22 @@ const AdminProducts: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>quantity</th>
-                <th>Actions</th>
+                <th>Изображение</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
               {products.map(product => (
-                <tr key={product.id}>
+                <tr key={product.productId}>
                   <td>
                     <div className="avatar">
-                      <div className="w-12 h-12">
+                      <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
                         <img 
-                          src={product.image || "https://picsum.photos/100/100"} 
+                          src={productService.getProductImage(product.productId) || "https://picsum.photos/100/100"} 
                           alt={product.name}
                           className="object-cover"
                         />
@@ -166,7 +185,7 @@ const AdminProducts: React.FC = () => {
                     <div className="font-bold">{product.name}</div>
                     <div className="text-sm line-clamp-1">{product.description}</div>
                   </td>
-                  <td>{product.category}</td>
+                  <td>{translateCategoryToRussian(product.category)}</td>
                   <td>${product.price.toFixed(2)}</td>
                   <td>{product.quantity}</td>
                   <td>
@@ -175,13 +194,13 @@ const AdminProducts: React.FC = () => {
                         className="btn btn-sm btn-outline" 
                         onClick={() => openModal(product)}
                       >
-                        Edit
+                        Изменить
                       </button>
                       <button 
                         className="btn btn-sm btn-error" 
                         onClick={() => handleDelete(product)}
                       >
-                        Delete
+                        Удалить
                       </button>
                     </div>
                   </td>
@@ -196,13 +215,13 @@ const AdminProducts: React.FC = () => {
       <dialog id="product_modal" className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box max-w-2xl">
           <h3 className="font-bold text-lg">
-            {selectedProduct ? 'Edit Product' : 'Add New Product'}
+            {selectedProduct ? 'Изменить товар' : 'Добавить товар'}
           </h3>
           
           <form onSubmit={handleSubmit}>
             <div className="form-control mt-4">
               <label className="label">
-                <span className="label-text">Product Name</span>
+                <span className="label-text">Название товара</span>
               </label>
               <input 
                 type="text" 
@@ -216,7 +235,7 @@ const AdminProducts: React.FC = () => {
             
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Description</span>
+                <span className="label-text">Описание</span>
               </label>
               <textarea 
                 name="description" 
@@ -230,7 +249,7 @@ const AdminProducts: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Price</span>
+                  <span className="label-text">Цена</span>
                 </label>
                 <input 
                   type="number" 
@@ -246,7 +265,7 @@ const AdminProducts: React.FC = () => {
               
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">quantity</span>
+                  <span className="label-text">Количество</span>
                 </label>
                 <input 
                   type="number" 
@@ -262,7 +281,7 @@ const AdminProducts: React.FC = () => {
             
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Category</span>
+                <span className="label-text">Категория</span>
               </label>
               <select 
                 name="category" 
@@ -271,16 +290,18 @@ const AdminProducts: React.FC = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>Выберите категорию</option>
                 {(categories || []).map(category => (
-                  <option key={category} value={category}>{category}</option>
+                  <option key={category} value={category}>
+                    {translateCategoryToRussian(category)}
+                  </option>
                 ))}
               </select>
             </div>
             
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Image</span>
+                <span className="label-text">Изображение</span>
               </label>
               <input 
                 type="file" 
@@ -291,14 +312,14 @@ const AdminProducts: React.FC = () => {
               />
               {selectedProduct && !formData.image && (
                 <label className="label">
-                  <span className="label-text-alt">Leave empty to keep current image</span>
+                  <span className="label-text-alt">Оставьте пустым, чтобы сохранить текущее изображение</span>
                 </label>
               )}
             </div>
             
             <div className="modal-action">
-              <button type="button" className="btn" onClick={closeModal}>Cancel</button>
-              <button type="submit" className="btn btn-primary">Save</button>
+              <button type="button" className="btn" onClick={closeModal}>Отмена</button>
+              <button type="submit" className="btn btn-primary">Сохранить</button>
             </div>
           </form>
         </div>

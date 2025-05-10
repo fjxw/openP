@@ -47,6 +47,9 @@ namespace OpenP.Controllers
                 }
             }
 
+            // Получаем общую стоимость корзины
+            decimal totalPrice = await cartRepository.GetCartTotalAsync(userId);
+
             var cartDto = new CartDto
             {
                 CartId = cart.CartId,
@@ -55,7 +58,8 @@ namespace OpenP.Controllers
                 {
                     ProductId = ci.ProductId,
                     Quantity = ci.Quantity
-                }).ToList()
+                }).ToList(),
+                TotalPrice = totalPrice // Добавляем общую сумму в DTO
             };
             return Ok(cartDto);
         }
@@ -99,7 +103,22 @@ namespace OpenP.Controllers
                 return BadRequest(new { message = "Недостаточно товара на складе" });
 
             await cartRepository.UpdateCartItemQuantityAsync(userId, productId, quantity);
-            return NoContent();
+            
+            // Возвращаем обновленную корзину после изменения количества
+            var cart = await cartRepository.GetCartByUserIdAsync(userId);
+            var cartDto = new CartDto
+            {
+                CartId = cart.CartId,
+                UserId = userId,
+                Items = cart.CartItems.Select(ci => new CartItemDto
+                {
+                    ProductId = ci.ProductId,
+                    Quantity = ci.Quantity
+                }).ToList()
+                
+            };
+            
+            return Ok(cartDto);
         }
 
         [HttpDelete("items/{productId}")]

@@ -47,10 +47,10 @@ export const fetchProductsByCategory = createAsyncThunk(
 
 export const fetchProductsByPriceRange = createAsyncThunk(
   'products/fetchProductsByPriceRange',
-  async ({ minPrice, maxPrice, pageNumber = 1, pageSize = 10 }: 
-         { minPrice: number, maxPrice: number, pageNumber?: number, pageSize?: number }, { rejectWithValue }) => {
+  async ({ minPrice, maxPrice, category, pageNumber = 1, pageSize = 10 }: 
+         { minPrice: number, maxPrice: number, category?: string, pageNumber?: number, pageSize?: number }, { rejectWithValue }) => {
     try {
-      return await productService.getProductsByPriceRange(minPrice, maxPrice, pageNumber, pageSize);
+      return await productService.getProductsByPriceRange(minPrice, maxPrice, category, pageNumber, pageSize);
     } catch (error: any) {
       return rejectWithValue(error);
     }
@@ -242,11 +242,11 @@ const productsSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.isLoading = false;
-        const index = state.products.findIndex(product => product.id === action.payload.id);
+        const index = state.products.findIndex(product => product.productId === action.payload.productId);
         if (index !== -1) {
           state.products[index] = action.payload;
         }
-        if (state.currentProduct && state.currentProduct.id === action.payload.id) {
+        if (state.currentProduct && state.currentProduct.productId === action.payload.productId) {
           state.currentProduct = action.payload;
         }
       })
@@ -262,8 +262,8 @@ const productsSlice = createSlice({
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.products = state.products.filter(product => product.id !== action.payload);
-        if (state.currentProduct && state.currentProduct.id === action.payload) {
+        state.products = state.products.filter(product => product.productId !== action.payload);
+        if (state.currentProduct && state.currentProduct.productId === action.payload) {
           state.currentProduct = null;
         }
       })

@@ -1,21 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchCart } from '../store/slices/cartSlice';
 import { createOrderFromCart } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
+import { useProductDetails } from '../hooks/useProductDetails';
+
+// Add this function for phone validation
+const validatePhoneNumber = (phone: string) => {
+  // Remove any non-digit characters except the plus sign at the beginning
+  const cleanedPhone = phone.replace(/[^\d+]/g, '');
+  
+  // Check if it matches the format +7 followed by 10 digits
+  const phoneRegex = /^\+7\d{10}$/;
+  return phoneRegex.test(cleanedPhone);
+};
+
+// Add this function for phone formatting
+const formatPhoneNumber = (input: string) => {
+  // Remove all non-digit characters except the plus sign
+  let value = input.replace(/[^\d+]/g, '');
+  
+  // Ensure it starts with +7
+  if (!value.startsWith('+')) {
+    value = '+' + value;
+  }
+  
+  if (value.startsWith('+') && !value.startsWith('+7') && value.length > 1) {
+    value = '+7' + value.substring(1);
+  }
+  
+  if (value.length <= 12) {
+    return value;
+  }
+  
+  // Limit to +7 plus 10 digits
+  return value.slice(0, 12);
+};
 
 const CheckoutPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { items, totalPrice, isLoading: cartLoading } = useAppSelector(state => state.cart);
-  const { isLoading: orderLoading, error } = useAppSelector(state => state.orders);
+  const { items = [], totalPrice, isLoading: cartLoading } = useAppSelector(state => state.cart);
+  const { isLoading: orderLoading, error: orderError } = useAppSelector(state => state.orders);
+  
+  // Используем наш хук для загрузки деталей продуктов
+  const { processedItems, isLoading: productsLoading, loadingError } = useProductDetails(items);
   
   const [formData, setFormData] = useState({
     address: '',
-    phone: '',
   });
+
+  const [phone, setPhone] = useState('+7');
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     dispatch(fetchCart());
@@ -29,28 +67,49 @@ const CheckoutPage: React.FC = () => {
     }));
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setPhone(formattedPhone);
+    
+    if (formattedPhone.length < 12) {
+      setPhoneError('');
+    } else if (!validatePhoneNumber(formattedPhone)) {
+      setPhoneError('Неверный формат номера телефона');
+    } else {
+      setPhoneError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.address || !formData.phone) {
+    if (!validatePhoneNumber(phone)) {
+      setPhoneError('Введите корректный номер телефона в формате +7XXXXXXXXXX');
+      return;
+    }
+
+    if (!formData.address) {
       return;
     }
     
     const result = await dispatch(createOrderFromCart({
       address: formData.address,
-      phone: formData.phone
+      phone: phone
     }));
     
     if (createOrderFromCart.fulfilled.match(result)) {
-      navigate(`/orders/${result.payload.id}`);
+      navigate(`/orders/${result.payload.orderId}`);
     }
   };
 
-  if (cartLoading) {
+  const isLoading = cartLoading || productsLoading;
+  const error = orderError || loadingError;
+
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 || items.reduce((total, item) => total + item.quantity, 0) === 0) {
     return (
       <Alert type="warning" message="Your cart is empty. Please add items before checkout." />
     );
@@ -74,14 +133,21 @@ const CheckoutPage: React.FC = () => {
                     <span className="label-text">Phone Number</span>
                   </label>
                   <input
-                    type="text"
-                    name="phone"
-                    placeholder="+1 (123) 456-7890"
-                    className="input input-bordered"
-                    value={formData.phone}
-                    onChange={handleChange}
+                    type="tel"
+                    className={`input input-bordered ${phoneError ? 'input-error' : ''}`}
+                    placeholder="+7XXXXXXXXXX"
+                    value={phone}
+                    onChange={handlePhoneChange}
                     required
                   />
+                  {phoneError && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">{phoneError}</span>
+                    </label>
+                  )}
+                  <label className="label">
+                    <span className="label-text-alt">Format: +7 and 10 digits</span>
+                  </label>
                 </div>
                 
                 <div className="form-control">
@@ -102,7 +168,7 @@ const CheckoutPage: React.FC = () => {
                   <button 
                     type="submit" 
                     className="btn btn-primary btn-block"
-                    disabled={orderLoading}
+                    disabled={!!phoneError || phone.length < 12 || orderLoading}
                   >
                     {orderLoading ? (
                       <span className="loading loading-spinner loading-sm"></span>
@@ -121,21 +187,24 @@ const CheckoutPage: React.FC = () => {
               <div className="divider mt-0"></div>
               
               <div className="space-y-2">
-                {items.map(item => (
-                  <div key={item.product.id} className="flex justify-between">
-                    <span>
-                      {item.product.name} × {item.quantity}
-                    </span>
-                    <span>${(item.product.price * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
+                {processedItems.map(item => {
+                  const product = item.product;
+                  return (
+                    <div key={item.productId} className="flex justify-between">
+                      <span>
+                        {product.name} × {item.quantity}
+                      </span>
+                      <span>${(product.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  );
+                })}
               </div>
               
               <div className="divider"></div>
               
               <div className="flex justify-between mb-2">
                 <span>Subtotal</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${(totalPrice ?? 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span>Shipping</span>
@@ -143,7 +212,7 @@ const CheckoutPage: React.FC = () => {
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${(totalPrice ?? 0).toFixed(2)}</span>
               </div>
             </div>
           </div>

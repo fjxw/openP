@@ -1,9 +1,8 @@
 export interface Product {
-  id: number;
+  productId: number;
   name: string;
   description: string;
   price: number;
-  image?: string;
   category: string;
   quantity: number;
   createdAt: string;
@@ -21,8 +20,14 @@ export interface ProductState {
 }
 
 export interface CartItem {
-  product: Product;
+  productId: number;
   quantity: number;
+  price?: number; // Добавляем для OrderItem
+  product?: Product; // Добавляем возможность иметь полную информацию о продукте
+}
+
+export interface CartItemWithProduct extends CartItem {
+  product: Product;
 }
 
 export interface CartState {
@@ -33,7 +38,7 @@ export interface CartState {
 }
 
 export interface User {
-  id: number;
+  userId: number; // Изменено с id на userId для соответствия бэкенду
   email: string;
   username: string;
   role: string;
@@ -48,7 +53,7 @@ export interface AuthState {
 }
 
 export interface Order {
-  id: number;
+  orderId: number;
   userId: number;
   items: CartItem[];
   totalPrice: number;
@@ -56,6 +61,10 @@ export interface Order {
   address: string;  
   phone: string;
   createdAt: string;
+}
+
+export interface OrderWithProductDetails extends Order {
+  items: CartItemWithProduct[];
 }
 
 export interface OrderState {
@@ -86,10 +95,16 @@ export interface LoginUserDto {
 }
 
 export interface UserDto {
-  id: number;
+  userId: number;
   email: string;
-  name: string;
+  username: string; // Исправлено с name на username
   role: string;
+}
+
+// Добавляем тип для сброса пароля
+export interface ResetPasswordDto {
+  email: string;
+  newPassword: string;
 }
 
 export interface CreateProductRequest {

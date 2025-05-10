@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchProductById, clearError } from '../store/slices/productsSlice';
-import { addToCart } from '../store/slices/cartSlice';
+import { addToCart, updateCartItem } from '../store/slices/cartSlice';
+import productService from '../api/productService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
 
@@ -10,6 +11,7 @@ const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { currentProduct, isLoading, error } = useAppSelector(state => state.products);
+  const { items = [] } = useAppSelector(state => state.cart);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -22,9 +24,27 @@ const ProductPage: React.FC = () => {
     };
   }, [dispatch, id]);
 
+  // Проверяем, есть ли товар уже в корзине и устанавливаем начальное количество
+  useEffect(() => {
+    if (currentProduct) {
+      const cartItem = items.find(item => item.productId === currentProduct.productId);
+      if (cartItem) {
+        setQuantity(cartItem.quantity);
+      } else {
+        setQuantity(1); // Сбрасываем на 1, если товар не в корзине
+      }
+    }
+  }, [currentProduct, items]);
+
   const handleAddToCart = () => {
     if (currentProduct) {
-      dispatch(addToCart({ productId: currentProduct.id, quantity }));
+      // Проверяем, есть ли товар уже в корзине
+      const existingItem = items.find(item => item.productId === currentProduct.productId);
+      if (existingItem) {
+        dispatch(updateCartItem({ productId: currentProduct.productId, quantity }));
+      } else {
+        dispatch(addToCart({ productId: currentProduct.productId, quantity }));
+      }
     }
   };
 
@@ -39,6 +59,9 @@ const ProductPage: React.FC = () => {
       setQuantity(prev => prev - 1);
     }
   };
+
+  // Проверяем, добавлен ли товар в корзину
+  const isInCart = currentProduct && items.some(item => item.productId === currentProduct.productId);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -57,7 +80,7 @@ const ProductPage: React.FC = () => {
       {/* Product Image */}
       <div className="flex justify-center">
         <img 
-          src={currentProduct.image || "https://picsum.photos/600/400"} 
+          src={productService.getProductImage(currentProduct.productId) || "https://picsum.photos/600/400"} 
           alt={currentProduct.name} 
           className="rounded-lg shadow-lg object-cover max-h-96"
         />
@@ -127,11 +150,11 @@ const ProductPage: React.FC = () => {
           </div>
           
           <button 
-            className="btn btn-primary ml-4" 
+            className={`btn ${isInCart ? 'btn-success' : 'btn-primary'} ml-4`}
             onClick={handleAddToCart}
             disabled={currentProduct.quantity === 0}
           >
-            Add to Cart
+            {isInCart ? 'Update Cart' : 'Add to Cart'}
           </button>
         </div>
       </div>

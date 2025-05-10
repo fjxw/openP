@@ -1,9 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using OpenP.Data;
 using OpenP.Entities;
 using OpenP.Enums;
-
 
 namespace OpenP.Repositories
 {
@@ -63,18 +61,27 @@ namespace OpenP.Repositories
 
         public async Task<IEnumerable<Product?>> GetProductsByNameAsync(string name, int pageNumber, int pageSize)
         {
+            var searchTerm = name?.ToLower() ?? string.Empty;
             return await context.Products
-                .Where(p => p.Name.Contains(name))
+                .Where(p => EF.Functions.Like(p.Name.ToLower(), $"%{searchTerm}%") ||
+                           EF.Functions.Like(p.Description.ToLower(), $"%{searchTerm}%"))
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Product?>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice,
-            int pageNumber, int pageSize)
+            int pageNumber, int pageSize, Categories? category = null)
         {
-            return await context.Products
-                .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
+            var query = context.Products
+                .Where(p => p.Price >= minPrice && p.Price <= maxPrice);
+                
+            if (category != null)
+            {
+                query = query.Where(p => p.Category == category);
+            }
+            
+            return await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

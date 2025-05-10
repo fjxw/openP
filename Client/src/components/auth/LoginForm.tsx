@@ -67,7 +67,9 @@ const LoginForm: React.FC = () => {
               required
             />
             <label className="label">
-              <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
+              <Link to="/forgot-password" className="label-text-alt link link-hover">
+                Забыли пароль?
+              </Link>
             </label>
           </div>
           

@@ -17,5 +17,5 @@ public interface IProductRepository
     Task UpdateProductAsync(Product? product);
     Task<Product?> GetProductByNameAsync(string name);
     Task DeleteProductAsync(int productId);
-    Task<IEnumerable<Product?>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice, int pageNumber, int pageSize);
+    Task<IEnumerable<Product?>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice, int pageNumber, int pageSize, Categories? category = null);
 }

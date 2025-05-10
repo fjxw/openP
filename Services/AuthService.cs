@@ -72,6 +72,19 @@ namespace OpenP.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        public async Task ResetPasswordAsync(string email, string newPassword)
+        {
+            var user = await userRepository.GetUserByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception("Пользователь не найден");
+            }
+            
+            var passwordHash = passwordHasher.HashPassword(user, newPassword);
+            user.PasswordHash = passwordHash;
+            await userRepository.UpdateUserAsync(user);
+        }
         
         private static bool IsValidEmail(string email)
         {

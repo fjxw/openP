@@ -53,9 +53,8 @@ namespace OpenP.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDto>> GetOrder(int id)
         {
-            var userId = GetUserId();
             var o = await orderRepository.GetOrderByIdAsync(id);
-            if (o == null || o.UserId != userId) return NotFound("Заказ не найден");
+            if (o == null) return NotFound("Заказ не найден");
             var dto = new OrderDto {
                 OrderId = o.OrderId,
                 UserId = o.UserId,
@@ -233,12 +232,13 @@ namespace OpenP.Controllers
             }
         }
 
+        
         [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderDto dto)
         {
-            var userId = GetUserId();
             var order = await orderRepository.GetOrderByIdAsync(id);
-            if (order == null || order.UserId != userId) return NotFound(new { message = "Заказ не найден"});
+            if (order == null) return NotFound(new { message = "Заказ не найден"});
             if (dto.PhoneNumber != null)
                 order.PhoneNumber = dto.PhoneNumber;
             if (dto.Address != null)
@@ -246,28 +246,33 @@ namespace OpenP.Controllers
             if (dto.Status != null)
             {
                 if (!Enum.TryParse<Statuses>(dto.Status, true, out var status))
-            {
-                return BadRequest(new { message = "Недопустимый статус заказа" });
-            }
-            var newStatus = status;
-            var oldStatus = order.Status;
-            order.Status = newStatus;
-            if (newStatus == Statuses.Cancelled)
-            {
-                foreach (var it in order.OrderItems)
                 {
-                    var p = await productRepository.GetProductByIdAsync(it.ProductId);
-                    if (p != null)
+                    return BadRequest(new { message = "Недопустимый статус заказа" });
+                }
+                var newStatus = status;
+                var oldStatus = order.Status;
+                
+                // Проверяем, что заказ не находится уже в завершенном состоянии
+                if (oldStatus == Statuses.Completed || oldStatus == Statuses.Cancelled)
+                {
+                    return BadRequest(new { message = "Невозможно изменить статус завершенного или отмененного заказа" });
+                }
+                
+                order.Status = newStatus;
+                
+                // Возвращаем товары на склад при отмене заказа
+                if (newStatus == Statuses.Cancelled)
+                {
+                    foreach (var it in order.OrderItems)
                     {
-                        p.Quantity += it.Quantity;
-                        await productRepository.UpdateProductAsync(p);
+                        var p = await productRepository.GetProductByIdAsync(it.ProductId);
+                        if (p != null)
+                        {
+                            p.Quantity += it.Quantity;
+                            await productRepository.UpdateProductAsync(p);
+                        }
                     }
                 }
-            }
-             if (newStatus == Statuses.Completed || newStatus == Statuses.Cancelled)
-            {
-                return BadRequest(new { message = "Заказ уже завершен" });
-            }
             }
             
             await orderRepository.UpdateOrderAsync(order);
@@ -275,6 +280,7 @@ namespace OpenP.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
             var userId = GetUserId();
