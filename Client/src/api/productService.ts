@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { API_URL } from '../config.ts';
 
+const imageCache: Record<number, string> = {};
+
 const productService = {
   getProducts: async (pageNumber = 1, pageSize = 10) => {
     try {
@@ -100,34 +102,29 @@ const productService = {
   uploadProductImage: async (id: number, imageFile: File) => {
     try {
       const formData = new FormData();
-      
-      // Важно: добавляем файл именно с ключом "image", как ожидает сервер
       formData.append('image', imageFile);
-      
-      console.log(`Uploading image for product ${id}`, imageFile);
-      
+      console.log(`Загрузка файла ${id}`, imageFile);
       const response = await axios.post(`${API_URL}/api/product/${id}/image`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
-      console.log('Image upload response:', response.data);
-      
-      // Добавляем временную метку для избежания кэширования изображения
-      const timestamp = new Date().getTime();
-      return `${response.data}?t=${timestamp}`;
+      console.log('Ответ сервера:', response.data);
+      delete imageCache[id]; 
+      return response.data;
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('Ошибка:', error);
       throw error.response?.data?.message || 'Ошибка при загрузке изображения';
     }
   },
   
   getProductImage: (id: number) => {
-    // Добавляем временную метку для избежания кэширования изображения
-    const timestamp = new Date().getTime();
-    return `${API_URL}/api/product/${id}/image?t=${timestamp}`;
+    if (!imageCache[id]) {
+      const timestamp = new Date().getTime();
+      imageCache[id] = `${API_URL}/api/product/${id}/image?t=${timestamp}`;
+    }
+    return imageCache[id];
   }
 };
 

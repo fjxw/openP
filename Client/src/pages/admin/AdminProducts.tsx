@@ -95,27 +95,22 @@ const AdminProducts: React.FC = () => {
       let productId;
       
       if (selectedProduct) {
-        // Обновляем информацию о продукте
         const result = await dispatch(updateProduct({
           id: selectedProduct.productId,
           productData: productData
         }));
         
-        // Получаем ID продукта из результата
         if (updateProduct.fulfilled.match(result)) {
           productId = result.payload.productId;
         }
       } else {
-        // Создаем новый продукт
         const result = await dispatch(createProduct(productData));
         
-        // Получаем ID продукта из результата
         if (createProduct.fulfilled.match(result)) {
           productId = result.payload.productId;
         }
       }
       
-      // Загружаем изображение, если оно выбрано и у нас есть ID продукта
       if (formData.image && productId) {
         await dispatch(uploadProductImage({
           id: productId,
@@ -130,7 +125,7 @@ const AdminProducts: React.FC = () => {
   };
   
   const handleDelete = async (product: Product) => {
-    if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+    if (confirm(`Вы уверены, что хотите удалить "${product.name}"?`)) {
       await dispatch(deleteProduct(product.productId));
     }
   };
@@ -211,22 +206,19 @@ const AdminProducts: React.FC = () => {
         </div>
       )}
       
-      {/* Product Form Modal */}
-      <dialog id="product_modal" className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
+      <div className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box max-w-2xl">
-          <h3 className="font-bold text-lg">
+          <h3 className="font-bold text-xl mb-6">
             {selectedProduct ? 'Изменить товар' : 'Добавить товар'}
           </h3>
           
-          <form onSubmit={handleSubmit}>
-            <div className="form-control mt-4">
-              <label className="label">
-                <span className="label-text">Название товара</span>
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="form-control">
+              <div className="text-sm font-medium mb-2">Название товара</div>
               <input 
                 type="text" 
                 name="name" 
-                className="input input-bordered" 
+                className="input input-bordered w-full" 
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -234,29 +226,25 @@ const AdminProducts: React.FC = () => {
             </div>
             
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Описание</span>
-              </label>
+              <div className="text-sm font-medium mb-2">Описание</div>
               <textarea 
                 name="description" 
-                className="textarea textarea-bordered h-24" 
+                className="textarea textarea-bordered h-24 w-full" 
                 value={formData.description}
                 onChange={handleChange}
                 required
               ></textarea>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Цена</span>
-                </label>
+                <div className="text-sm font-medium mb-2">Цена</div>
                 <input 
                   type="number" 
                   name="price" 
                   step="0.01" 
                   min="0" 
-                  className="input input-bordered" 
+                  className="input input-bordered w-full" 
                   value={formData.price}
                   onChange={handleChange}
                   required
@@ -264,14 +252,12 @@ const AdminProducts: React.FC = () => {
               </div>
               
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Количество</span>
-                </label>
+                <div className="text-sm font-medium mb-2">Количество</div>
                 <input 
                   type="number" 
                   name="quantity" 
                   min="0" 
-                  className="input input-bordered" 
+                  className="input input-bordered w-full" 
                   value={formData.quantity}
                   onChange={handleChange}
                   required
@@ -280,12 +266,10 @@ const AdminProducts: React.FC = () => {
             </div>
             
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Категория</span>
-              </label>
+              <div className="text-sm font-medium mb-2">Категория</div>
               <select 
                 name="category" 
-                className="select select-bordered" 
+                className="select select-bordered w-full" 
                 value={formData.category}
                 onChange={handleChange}
                 required
@@ -300,31 +284,27 @@ const AdminProducts: React.FC = () => {
             </div>
             
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Изображение</span>
-              </label>
+              <div className="text-sm font-medium mb-2">Изображение</div>
               <input 
                 type="file" 
-                className="file-input file-input-bordered" 
+                className="file-input file-input-bordered w-full" 
                 accept="image/*"
                 onChange={handleImageChange}
                 required={!selectedProduct}
               />
               {selectedProduct && !formData.image && (
-                <label className="label">
-                  <span className="label-text-alt">Оставьте пустым, чтобы сохранить текущее изображение</span>
-                </label>
+                <p className="text-xs mt-1 text-gray-500">Оставьте пустым, чтобы сохранить текущее изображение</p>
               )}
             </div>
             
-            <div className="modal-action">
+            <div className="modal-action mt-8">
               <button type="button" className="btn" onClick={closeModal}>Отмена</button>
               <button type="submit" className="btn btn-primary">Сохранить</button>
             </div>
           </form>
         </div>
         <div className="modal-backdrop" onClick={closeModal}></div>
-      </dialog>
+      </div>
     </div>
   );
 };

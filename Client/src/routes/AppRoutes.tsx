@@ -1,10 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router';
 
-// Layout
 import Layout from '../components/layout/Layout';
 
-// Pages
 import HomePage from '../pages/HomePage';
 import ProductPage from '../pages/ProductPage';
 import CartPage from '../pages/CartPage';
@@ -16,13 +14,11 @@ import OrderConfirmationPage from '../pages/OrderConfirmationPage';
 import OrdersPage from '../pages/OrdersPage';
 import UnauthorizedPage from '../pages/UnauthorizedPage';
 
-// Admin Pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminUsers from '../pages/admin/AdminUsers';
 import AdminProducts from '../pages/admin/AdminProducts';
 import AdminOrders from '../pages/admin/AdminOrders';
 
-// Auth
 import ProtectedRoute from './ProtectedRoute';
 
 const allowedRoles: string[] = ["Admin"];
@@ -30,14 +26,14 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        {/* Public routes */}
+      
         <Route index element={<HomePage />} />
         <Route path="products/:id" element={<ProductPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="unauthorized" element={<UnauthorizedPage />} />
         
-        {/* Protected routes - requires authentication */}
+      
         <Route path="cart" element={
           <ProtectedRoute>
             <CartPage />
@@ -64,7 +60,6 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
         
-        {/* Admin routes - requires admin role */}
         <Route path="admin" element={
           <ProtectedRoute allowedRoles={allowedRoles}>
             <AdminDashboard />
@@ -86,7 +81,7 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
         
-        {/* Catch all route */}
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

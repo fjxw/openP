@@ -15,7 +15,7 @@ export const fetchCart = createAsyncThunk(
     try {
       return await cartService.getCart();
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch cart');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось получить корзину');
     }
   }
 );
@@ -24,45 +24,37 @@ export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async ({ productId, quantity }: { productId: number; quantity: number }, { dispatch, getState, rejectWithValue }) => {
     try {
-      // Оптимистичное обновление перед запросом к серверу
+  
       const state = getState() as { cart: CartState };
       const currentItems = state.cart.items || [];
-      
-      // Создаем копию текущих элементов
+  
       const updatedItems: CartItem[] = [...currentItems];
-      
-      // Проверяем, есть ли уже этот товар в корзине
+   
       const existingItemIndex = updatedItems.findIndex(item => item.productId === productId);
       
       if (existingItemIndex >= 0) {
-        // Если товар уже в корзине, увеличиваем количество
         updatedItems[existingItemIndex] = {
           ...updatedItems[existingItemIndex],
           quantity: updatedItems[existingItemIndex].quantity + quantity
         };
       } else {
-        // Иначе добавляем новый товар
         updatedItems.push({ productId, quantity });
       }
-      
-      // Сразу диспатчим локальное обновление корзины
       dispatch(optimisticUpdateCart(updatedItems));
-      
-      // Затем делаем реальный запрос к серверу
+  
       const response = await cartService.addItemToCart(productId, quantity);
       return {
         items: response.items || [],
         totalPrice: response.totalPrice || 0
       };
     } catch (error: any) {
-      // В случае ошибки, восстановим предыдущее состояние через запрос актуальной корзины
       try {
         const response = await cartService.getCart();
         dispatch(fetchCart.fulfilled(response, '', undefined));
       } catch (fetchError) {
-        console.error("Failed to restore cart state:", fetchError);
+        console.error("Не удалось восстановить корзину:", fetchError);
       }
-      return rejectWithValue(error.response?.data?.message || 'Failed to add item to cart');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось добавить товар в корзину');
     }
   }
 );
@@ -71,42 +63,31 @@ export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async ({ productId, quantity }: { productId: number; quantity: number }, { dispatch, getState, rejectWithValue }) => {
     try {
-      // Оптимистичное обновление перед запросом к серверу
       const state = getState() as { cart: CartState };
       const currentItems = state.cart.items || [];
-      
-      // Создаем копию текущих элементов
       const updatedItems: CartItem[] = [...currentItems];
-      
-      // Находим индекс товара в корзине
       const existingItemIndex = updatedItems.findIndex(item => item.productId === productId);
       
       if (existingItemIndex >= 0) {
-        // Обновляем количество
         updatedItems[existingItemIndex] = {
           ...updatedItems[existingItemIndex],
           quantity: quantity
         };
-        
-        // Сразу диспатчим локальное обновление корзины
         dispatch(optimisticUpdateCart(updatedItems));
       }
-      
-      // Затем делаем реальный запрос к серверу
       const response = await cartService.updateItemQuantity(productId, quantity);
       return {
         items: response.items || [],
         totalPrice: response.totalPrice || 0
       };
     } catch (error: any) {
-      // В случае ошибки, восстановим предыдущее состояние через запрос актуальной корзины
       try {
         const response = await cartService.getCart();
         dispatch(fetchCart.fulfilled(response, '', undefined));
       } catch (fetchError) {
-        console.error("Failed to restore cart state:", fetchError);
+        console.error("Не удалось восстановить состояние корзины:", fetchError);
       }
-      return rejectWithValue(error.response?.data?.message || 'Failed to update cart item');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось обновить товар в корзине');
     }
   }
 );
@@ -117,7 +98,7 @@ export const removeFromCart = createAsyncThunk(
     try {
       return await cartService.removeItemFromCart(productId);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to remove item from cart');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось удалить товар из корзины');
     }
   }
 );
@@ -128,7 +109,7 @@ export const clearCart = createAsyncThunk(
     try {
       return await cartService.clearCart();
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to clear cart');
+      return rejectWithValue(error.response?.data?.message || 'Не удалось очистить корзину');
     }
   }
 );
@@ -141,7 +122,6 @@ const cartSlice = createSlice({
       state.error = null;
     },
     optimisticUpdateCart: (state, action) => {
-      // Локально обновляем состояние корзины без ожидания ответа сервера
       state.items = action.payload;
     },
   },

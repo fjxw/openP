@@ -10,7 +10,6 @@ const CartPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items = [], totalPrice, isLoading: cartLoading, error: cartError } = useAppSelector((state) => state.cart);
   
-  // Используем наш новый хук для загрузки деталей продуктов
   const { processedItems, isLoading: productsLoading, loadingError } = useProductDetails(items);
   
   useEffect(() => {
@@ -25,10 +24,8 @@ const CartPage: React.FC = () => {
     dispatch(removeFromCart(productId));
   };
 
-  // Показываем загрузку, только если загружается корзина или продукты
   const isLoading = cartLoading || productsLoading;
-  
-  // Объединяем ошибки из разных источников
+
   const error = cartError || loadingError;
 
   if (isLoading) {
@@ -42,10 +39,10 @@ const CartPage: React.FC = () => {
   if (processedItems.length === 0 || processedItems.reduce((total, item) => total + item.quantity, 0) === 0) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-        <p className="mb-6">Add some items to your cart to continue shopping.</p>
+        <h2 className="text-2xl font-bold mb-4">Ваша корзина пуста</h2>
+        <p className="mb-6">Добавьте товары в козину.</p>
         <Link to="/" className="btn btn-primary">
-          Browse Products
+          К покупкам
         </Link>
       </div>
     );
@@ -53,17 +50,17 @@ const CartPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Shopping Cart</h1>
+      <h1 className="text-2xl font-bold mb-4">Корзина</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                  <th>Actions</th>
+                  <th>Товар</th>
+                  <th>Количество</th>
+                  <th>Цена</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,13 +92,13 @@ const CartPage: React.FC = () => {
                           </button>
                         </div>
                       </td>
-                      <td>${(prod.price * item.quantity).toFixed(2)}</td>
+                      <td>{(prod.price * item.quantity).toFixed(2)} ₽</td>
                       <td>
                         <button
                           className="btn btn-sm btn-error"
                           onClick={() => handleRemoveItem(prod.productId)}
                         >
-                          Remove
+                          Удалить
                         </button>
                       </td>
                     </tr>
@@ -115,28 +112,28 @@ const CartPage: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="card bg-base-200">
             <div className="card-body">
-              <h2 className="card-title">Order Summary</h2>
+              <h2 className="card-title">Итого заказа</h2>
               <div className="divider mt-0"></div>
               
               <div className="flex justify-between mb-2">
-                <span>Subtotal</span>
-                <span>${totalPrice?.toFixed(2) || '0.00'}</span>
+                <span>Подытог</span>
+                <span>{totalPrice?.toFixed(2) || '0.00'} ₽</span>
               </div>
               <div className="flex justify-between mb-2">
-                <span>Shipping</span>
-                <span>Calculated at checkout</span>
+                <span>Доставка</span>
+                <span>Рассчитывается при оформлении</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>${totalPrice?.toFixed(2) || '0.00'}</span>
+                <span>Итого</span>
+                <span>{totalPrice?.toFixed(2) || '0.00'} ₽</span>
               </div>
               
               <div className="card-actions mt-6">
                 <Link to="/checkout" className="btn btn-primary btn-block">
-                  Proceed to Checkout
+                  Оформить заказ
                 </Link>
                 <Link to="/" className="btn btn-outline btn-block">
-                  Continue Shopping
+                  Продолжить покупки
                 </Link>
               </div>
             </div>

@@ -15,13 +15,13 @@ public class DataInitializer(
     {
         await context.Database.MigrateAsync(cancellationToken);
         
-        // Find existing admin user instead of deleting all admins
         var adminUser = await context.Users
             .FirstOrDefaultAsync(u => u.Role == Roles.Admin, cancellationToken);
         
+        
         if (adminUser == null)
         {
-            // Create a new admin user if none exists
+         
             adminUser = new User
             {
                 Username = configuration["AdminCredentials:Username"],
@@ -34,7 +34,7 @@ public class DataInitializer(
         }
         else
         {
-            // Update the existing admin user
+        
             adminUser.Username = configuration["AdminCredentials:Username"];
             adminUser.Email = configuration["AdminCredentials:Email"];
             var hashPassword = passwordHasher.HashPassword(adminUser, configuration["AdminCredentials:Password"]);

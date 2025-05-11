@@ -13,23 +13,21 @@ builder.Services.AddDependencies(builder.Configuration);
 
 var app = builder.Build();
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
 app.UseCors("CorsPolicy");
-
-app.UseMiddleware<AntiforgeryTokenMiddleware>();
-app.UseAntiforgery();
-app.UseHttpsRedirection();
 app.UseRouting();
+app.UseHttpsRedirection();
 app.UseMiddleware<JwtCookieMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AntiforgeryTokenMiddleware>();
+app.UseAntiforgery();
+app.UseSwagger();
+app.UseSwaggerUI();
 app.MapControllers();
 
 await app.InitAndRunAsync();

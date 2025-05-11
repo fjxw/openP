@@ -11,8 +11,6 @@ const LoginForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get redirect path from location state or default to home
   const from = (location.state as any)?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,8 +26,8 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="card bg-base-100 shadow-lg max-w-md mx-auto">
-      <div className="card-body">
-        <h2 className="card-title text-2xl text-center">Login</h2>
+      <div className="card-body px-6 py-8">
+        <h2 className="card-title text-2xl text-center mb-8">Вход в аккаунт</h2>
         
         {error && (
           <Alert 
@@ -39,15 +37,13 @@ const LoginForm: React.FC = () => {
           />
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Email</div>
             <input 
               type="email" 
-              placeholder="email@example.com" 
-              className="input input-bordered" 
+              placeholder="email@mail.ru" 
+              className="input input-bordered w-full" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -55,40 +51,27 @@ const LoginForm: React.FC = () => {
           </div>
           
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Password</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Пароль</div>
             <input 
               type="password" 
-              placeholder="password" 
-              className="input input-bordered" 
+              placeholder="Введите пароль" 
+              className="input input-bordered w-full" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <label className="label">
-              <Link to="/forgot-password" className="label-text-alt link link-hover">
-                Забыли пароль?
-              </Link>
-            </label>
           </div>
           
-          <div className="form-control mt-6">
+          <div className="form-control mt-2">
             <button 
               type="submit" 
-              className="btn btn-primary" 
+              className="btn btn-primary w-full" 
               disabled={isLoading}
             >
               {isLoading ? (
                 <span className="loading loading-spinner loading-sm"></span>
-              ) : 'Login'}
+              ) : 'Войти'}
             </button>
-          </div>
-          
-          <div className="text-center mt-4">
-            <p>
-              Don't have an account? <Link to="/register" className="link link-primary">Register</Link>
-            </p>
           </div>
         </form>
       </div>

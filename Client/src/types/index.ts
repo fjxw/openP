@@ -59,8 +59,8 @@ export interface Order {
   totalPrice: number;
   status: string;
   address: string;  
-  phone: string;
-  createdAt: string;
+  phoneNumber: string;
+  orderDate: string; 
 }
 
 export interface OrderWithProductDetails extends Order {
@@ -97,11 +97,10 @@ export interface LoginUserDto {
 export interface UserDto {
   userId: number;
   email: string;
-  username: string; // Исправлено с name на username
+  username: string; 
   role: string;
 }
 
-// Добавляем тип для сброса пароля
 export interface ResetPasswordDto {
   email: string;
   newPassword: string;

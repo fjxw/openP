@@ -54,7 +54,7 @@ namespace OpenP.Controllers
             try
             {
                 var data = fileService.GetFile("Products", id.ToString());
-                return File(data, "image/jpeg", $"IMG-{id}");
+                return File(data, "image/jpeg", $"IMG-{id}.jpg");
             }
             catch (Exception ex)
             {

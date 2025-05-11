@@ -14,7 +14,7 @@ const ProfilePage: React.FC = () => {
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { theme, changeTheme } = useTheme();
+  const { theme, changeTheme, availableThemes } = useTheme();
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -101,9 +101,6 @@ const ProfilePage: React.FC = () => {
         updateData.password = formData.password;
       }
       
-      const updatedUserData = await userService.updateUser(updateData);
-      
-      // Обновляем данные пользователя в Redux store без дополнительного запроса
       dispatch(updateUser({
         ...user,
         username: formData.username || user?.username,
@@ -134,8 +131,10 @@ const ProfilePage: React.FC = () => {
   };
 
   if (!user) {
-    return <Alert type="warning" message="You are not logged in" />;
+    return <Alert type="warning" message="Вы не авторизованы" />;
   }
+
+  const firstLetter = user.username ? user.username.charAt(0).toUpperCase() : 'П';
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -145,12 +144,12 @@ const ProfilePage: React.FC = () => {
             <div className="avatar">
               <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center relative">
                 <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold">
-                  {user.username.charAt(0).toUpperCase()}
+                  {firstLetter}
                 </span>
               </div>
             </div>
-            <h2 className="card-title mt-4">{user.username}</h2>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <h2 className="card-title mt-4">{user.username || 'Пользователь'}</h2>
+            <p className="text-sm text-gray-500">{user.email || ''}</p>
             <div className="badge badge-primary mt-2">{translateRoleToRussian(user.role)}</div>
           </div>
         </div>
@@ -160,12 +159,12 @@ const ProfilePage: React.FC = () => {
         <div className="card bg-base-100 shadow-lg mb-8">
           <div className="card-body">
             <div className="flex justify-between items-center">
-              <h2 className="card-title">Account Settings</h2>
+              <h2 className="card-title">Настройки аккаунта</h2>
               <button 
                 className={`btn btn-sm ${isEditing ? 'btn-outline' : 'btn-primary'}`} 
                 onClick={handleEditToggle}
               >
-                {isEditing ? 'Cancel' : 'Edit Profile'}
+                {isEditing ? 'Отмена' : 'Редактировать профиль'}
               </button>
             </div>
             <div className="divider mt-0"></div>
@@ -177,9 +176,7 @@ const ProfilePage: React.FC = () => {
             {isEditing ? (
               <form onSubmit={handleProfileUpdate}>
                 <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Username</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Имя пользователя</label>
                   <input 
                     type="text" 
                     name="username"
@@ -191,9 +188,7 @@ const ProfilePage: React.FC = () => {
                 </div>
                 
                 <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Email</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Email</label>
                   <input 
                     type="email"
                     name="email"
@@ -205,24 +200,20 @@ const ProfilePage: React.FC = () => {
                 </div>
                 
                 <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">New Password</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Новый пароль</label>
                   <input 
                     type="password"
                     name="password"
                     value={formData.password} 
                     onChange={handleInputChange}
                     className="input input-bordered w-full" 
-                    placeholder="Leave empty to keep current password"
+                    placeholder="Оставьте пустым, чтобы сохранить текущий пароль"
                   />
                 </div>
                 
                 {formData.password && (
                   <div className="form-control w-full mb-6">
-                    <label className="label">
-                      <span className="label-text">Confirm New Password</span>
-                    </label>
+                    <label className="text-sm font-medium mb-2">Подтвердите новый пароль</label>
                     <input 
                       type="password"
                       name="confirmPassword"
@@ -239,61 +230,52 @@ const ProfilePage: React.FC = () => {
                   className="btn btn-primary w-full"
                   disabled={loading}
                 >
-                  {loading ? <span className="loading loading-spinner loading-sm"></span> : 'Save Changes'}
+                  {loading ? <span className="loading loading-spinner loading-sm"></span> : 'Сохранить изменения'}
                 </button>
               </form>
             ) : (
               <>
                 <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Email</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Email</label>
                   <input 
                     type="text" 
-                    value={user.email} 
+                    value={user.email || ''} 
                     className="input input-bordered w-full" 
                     disabled 
                   />
                 </div>
                 
                 <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Username</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Имя пользователя</label>
                   <input 
                     type="text" 
-                    value={user.username} 
+                    value={user.username || ''} 
                     className="input input-bordered w-full" 
                     disabled 
                   />
                 </div>
                 
                 <div className="form-control w-full mb-8">
-                  <label className="label">
-                    <span className="label-text">Theme</span>
-                  </label>
+                  <label className="text-sm font-medium mb-2">Тема</label>
                   <div className="flex flex-wrap gap-2">
-                    <button 
-                      className={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-outline'}`}
-                      onClick={() => handleThemeChange('light')}
-                    >
-                      Light
-                    </button>
-                    <button 
-                      className={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-outline'}`}
-                      onClick={() => handleThemeChange('dark')}
-                    >
-                      Dark
-                    </button>
+                    {availableThemes.map(t => (
+                      <button 
+                        key={t.id}
+                        className={`btn btn-sm ${theme === t.id ? 'btn-primary' : 'btn-outline'}`}
+                        onClick={() => handleThemeChange(t.id)}
+                      >
+                        {t.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button onClick={handleLogout} className="btn btn-outline btn-primary">
-                    Logout
+                    Выйти
                   </button>
                   <button onClick={() => setIsDeleteModalOpen(true)} className="btn btn-error">
-                    Delete Account
+                    Удалить аккаунт
                   </button>
                 </div>
               </>
@@ -304,16 +286,16 @@ const ProfilePage: React.FC = () => {
       
       <dialog id="delete_modal" className={`modal ${isDeleteModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
-          <h3 className="font-bold text-lg">Delete Account</h3>
+          <h3 className="font-bold text-lg">Удаление аккаунта</h3>
           <p className="py-4">
-            Are you sure you want to delete your account? This action cannot be undone and all your data will be lost.
+            Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить, и все ваши данные будут потеряны.
           </p>
           <div className="modal-action">
             <button className="btn" onClick={() => setIsDeleteModalOpen(false)}>
-              Cancel
+              Отмена
             </button>
             <button className="btn btn-error" onClick={handleDeleteAccount}>
-              Delete
+              Удалить
             </button>
           </div>
         </div>

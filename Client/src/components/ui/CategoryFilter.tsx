@@ -1,5 +1,5 @@
 import React from 'react';
-import { translateCategoryToRussian, translateCategoryToEnglish } from '../../utils/translations';
+import { translateCategoryToRussian } from '../../utils/translations';
 
 interface CategoryFilterProps {
   categories: string[] | undefined;
@@ -12,14 +12,12 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategory, 
   onChange 
 }) => {
-  // Преобразуем выбранную категорию для отображения
   const displaySelectedCategory = selectedCategory ? 
     translateCategoryToRussian(selectedCategory) : 
     'Все категории';
 
-  // Обработчик изменения категории - передает английское значение
   const handleCategoryChange = (category: string | undefined) => {
-    onChange(category); // Передаем оригинальное значение на английском
+    onChange(category); 
   };
 
   return (

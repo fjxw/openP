@@ -29,11 +29,11 @@ const PriceFilter: React.FC<PriceFilterProps> = ({ minPrice, maxPrice, onChange 
 
   return (
     <div className="p-4 bg-base-200 rounded-lg">
-      <h3 className="font-bold text-lg mb-4">Price Range</h3>
+      <h3 className="font-bold text-lg mb-4">Фильтр цены</h3>
       <div className="flex gap-2 items-center mb-4">
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Min</span>
+            <span className="label-text">Мин</span>
           </label>
           <input 
             type="number" 
@@ -47,7 +47,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({ minPrice, maxPrice, onChange 
         <div className="mt-8">-</div>
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Max</span>
+            <span className="label-text">Макс</span>
           </label>
           <input 
             type="number" 
@@ -60,8 +60,8 @@ const PriceFilter: React.FC<PriceFilterProps> = ({ minPrice, maxPrice, onChange 
         </div>
       </div>
       <div className="flex gap-2">
-        <button onClick={handleApply} className="btn btn-sm btn-primary">Apply</button>
-        <button onClick={handleReset} className="btn btn-sm btn-ghost">Reset</button>
+        <button onClick={handleApply} className="btn btn-sm btn-primary">Применить</button>
+        <button onClick={handleReset} className="btn btn-sm btn-ghost">Сбросить</button>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { register, clearError } from '../../store/slices/authSlice';
 import Alert from '../ui/Alert';
@@ -17,12 +17,12 @@ const RegisterForm: React.FC = () => {
 
   const validateForm = () => {
     if (password !== confirmPassword) {
-      setPasswordError("Passwords don't match");
+      setPasswordError("Пароли не совпадают");
       return false;
     }
     
     if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+      setPasswordError("Пароль должен содержать не менее 6 символов");
       return false;
     }
     
@@ -43,8 +43,8 @@ const RegisterForm: React.FC = () => {
 
   return (
     <div className="card bg-base-100 shadow-lg max-w-md mx-auto">
-      <div className="card-body">
-        <h2 className="card-title text-2xl text-center">Create Account</h2>
+      <div className="card-body px-6 py-8">
+        <h2 className="card-title text-2xl text-center mb-8">Регистрация аккаунта</h2>
         
         {error && (
           <Alert 
@@ -54,15 +54,13 @@ const RegisterForm: React.FC = () => {
           />
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Username</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Имя пользователя</div>
             <input 
               type="text" 
-              placeholder="username" 
-              className="input input-bordered" 
+              placeholder="Введите имя пользователя" 
+              className="input input-bordered w-full" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -70,13 +68,11 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Email</div>
             <input 
               type="email" 
-              placeholder="email@example.com" 
-              className="input input-bordered" 
+              placeholder="email@mail.ru" 
+              className="input input-bordered w-full" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -84,13 +80,11 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Password</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Пароль</div>
             <input 
               type="password" 
-              placeholder="password" 
-              className="input input-bordered" 
+              placeholder="Введите пароль" 
+              className="input input-bordered w-full" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -98,40 +92,30 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Confirm Password</span>
-            </label>
+            <div className="text-sm font-medium mb-2">Подтверждение пароля</div>
             <input 
               type="password" 
-              placeholder="confirm password" 
-              className="input input-bordered" 
+              placeholder="Повторите пароль" 
+              className="input input-bordered w-full" 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
             {passwordError && (
-              <label className="label">
-                <span className="label-text-alt text-error">{passwordError}</span>
-              </label>
+              <p className="text-xs text-error mt-2">{passwordError}</p>
             )}
           </div>
           
-          <div className="form-control mt-6">
+          <div className="form-control mt-2">
             <button 
               type="submit" 
-              className="btn btn-primary" 
+              className="btn btn-primary w-full" 
               disabled={isLoading}
             >
               {isLoading ? (
                 <span className="loading loading-spinner loading-sm"></span>
-              ) : 'Register'}
+              ) : 'Зарегистрироваться'}
             </button>
-          </div>
-          
-          <div className="text-center mt-4">
-            <p>
-              Already have an account? <Link to="/login" className="link link-primary">Login</Link>
-            </p>
           </div>
         </form>
       </div>

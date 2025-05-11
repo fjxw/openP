@@ -7,22 +7,15 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
 import { useProductDetails } from '../hooks/useProductDetails';
 
-// Add this function for phone validation
 const validatePhoneNumber = (phone: string) => {
-  // Remove any non-digit characters except the plus sign at the beginning
   const cleanedPhone = phone.replace(/[^\d+]/g, '');
-  
-  // Check if it matches the format +7 followed by 10 digits
   const phoneRegex = /^\+7\d{10}$/;
   return phoneRegex.test(cleanedPhone);
 };
 
-// Add this function for phone formatting
 const formatPhoneNumber = (input: string) => {
-  // Remove all non-digit characters except the plus sign
   let value = input.replace(/[^\d+]/g, '');
   
-  // Ensure it starts with +7
   if (!value.startsWith('+')) {
     value = '+' + value;
   }
@@ -35,7 +28,6 @@ const formatPhoneNumber = (input: string) => {
     return value;
   }
   
-  // Limit to +7 plus 10 digits
   return value.slice(0, 12);
 };
 
@@ -45,7 +37,6 @@ const CheckoutPage: React.FC = () => {
   const { items = [], totalPrice, isLoading: cartLoading } = useAppSelector(state => state.cart);
   const { isLoading: orderLoading, error: orderError } = useAppSelector(state => state.orders);
   
-  // Используем наш хук для загрузки деталей продуктов
   const { processedItems, isLoading: productsLoading, loadingError } = useProductDetails(items);
   
   const [formData, setFormData] = useState({
@@ -111,13 +102,13 @@ const CheckoutPage: React.FC = () => {
 
   if (items.length === 0 || items.reduce((total, item) => total + item.quantity, 0) === 0) {
     return (
-      <Alert type="warning" message="Your cart is empty. Please add items before checkout." />
+      <Alert type="warning" message="Ваша корзина пуста. Добавьте товары перед оформлением заказа." />
     );
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+      <h1 className="text-3xl font-bold mb-6">Оформление заказа</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
@@ -126,38 +117,30 @@ const CheckoutPage: React.FC = () => {
           <form onSubmit={handleSubmit}>
             <div className="card bg-base-100 shadow-lg">
               <div className="card-body">
-                <h2 className="card-title">Shipping Information</h2>
+                <h2 className="card-title text-xl mb-6">Информация о доставке</h2>
                 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Phone Number</span>
-                  </label>
+                <div className="form-control mb-6">
+                  <div className="mb-2 text-sm font-medium">Номер телефона</div>
                   <input
                     type="tel"
-                    className={`input input-bordered ${phoneError ? 'input-error' : ''}`}
+                    className={`input input-bordered w-full ${phoneError ? 'input-error' : ''}`}
                     placeholder="+7XXXXXXXXXX"
                     value={phone}
                     onChange={handlePhoneChange}
                     required
                   />
                   {phoneError && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{phoneError}</span>
-                    </label>
+                    <p className="text-error text-xs mt-1">{phoneError}</p>
                   )}
-                  <label className="label">
-                    <span className="label-text-alt">Format: +7 and 10 digits</span>
-                  </label>
+                  <p className="text-xs mt-1 text-gray-500">Формат: +7 и 10 цифр</p>
                 </div>
                 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Delivery Address</span>
-                  </label>
+                <div className="form-control mb-6">
+                  <div className="mb-2 text-sm font-medium">Адрес доставки</div>
                   <textarea
                     name="address"
-                    placeholder="Enter your full address"
-                    className="textarea textarea-bordered h-24"
+                    placeholder="Введите полный адрес доставки"
+                    className="textarea textarea-bordered h-24 w-full"
                     value={formData.address}
                     onChange={handleChange}
                     required
@@ -172,7 +155,7 @@ const CheckoutPage: React.FC = () => {
                   >
                     {orderLoading ? (
                       <span className="loading loading-spinner loading-sm"></span>
-                    ) : 'Place Order'}
+                    ) : 'Оформить заказ'}
                   </button>
                 </div>
               </div>
@@ -181,38 +164,38 @@ const CheckoutPage: React.FC = () => {
         </div>
         
         <div className="lg:col-span-1">
-          <div className="card bg-base-200">
+          <div className="card bg-base-200 sticky top-4">
             <div className="card-body">
-              <h2 className="card-title">Order Summary</h2>
-              <div className="divider mt-0"></div>
+              <h2 className="card-title text-xl mb-4">Сводка заказа</h2>
+              <div className="divider mt-0 mb-4"></div>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {processedItems.map(item => {
                   const product = item.product;
                   return (
                     <div key={item.productId} className="flex justify-between">
-                      <span>
+                      <span className="font-medium">
                         {product.name} × {item.quantity}
                       </span>
-                      <span>${(product.price * item.quantity).toFixed(2)}</span>
+                      <span>{(product.price * item.quantity).toFixed(2)} ₽</span>
                     </div>
                   );
                 })}
               </div>
               
-              <div className="divider"></div>
+              <div className="divider my-4"></div>
               
               <div className="flex justify-between mb-2">
-                <span>Subtotal</span>
-                <span>${(totalPrice ?? 0).toFixed(2)}</span>
+                <span>Подытог</span>
+                <span>{(totalPrice ?? 0).toFixed(2)} ₽</span>
               </div>
-              <div className="flex justify-between mb-2">
-                <span>Shipping</span>
-                <span>Free</span>
+              <div className="flex justify-between mb-3">
+                <span>Доставка</span>
+                <span>Бесплатно</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>${(totalPrice ?? 0).toFixed(2)}</span>
+                <span>Итого</span>
+                <span>{(totalPrice ?? 0).toFixed(2)} ₽</span>
               </div>
             </div>
           </div>

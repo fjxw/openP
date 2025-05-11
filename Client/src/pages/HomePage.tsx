@@ -100,7 +100,7 @@ const HomePage: React.FC = () => {
     updateFilters({
       minPrice: min?.toString(),
       maxPrice: max?.toString(),
-      search: undefined // Сбрасываем поиск при изменении цены
+      search: undefined 
     });
   };
 
@@ -154,8 +154,8 @@ const HomePage: React.FC = () => {
             </>
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-lg font-semibold">No products found</h3>
-              <p className="text-gray-500">Try changing your filter criteria</p>
+              <h3 className="text-lg font-semibold">Товары не найдены</h3>
+              <p className="text-gray-500">Попробуйте изменить критерии поиска</p>
             </div>
           )}
         </div>

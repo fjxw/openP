@@ -7,8 +7,8 @@ const Footer: React.FC = () => {
       <nav>
         <header className="footer-title">openP</header> 
         <Link to="/" className="link link-hover">Домашняя страница</Link>
-        <Link to="/" className="link link-hover">Профиль</Link>
-        <Link to="/" className="link link-hover">Заказы</Link>
+        <Link to="/profile" className="link link-hover">Профиль</Link>
+        <Link to="/orders" className="link link-hover">Заказы</Link>
         <Link to="/cart" className="link link-hover">Корзина</Link>
       </nav> 
     </footer>

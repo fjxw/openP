@@ -21,7 +21,12 @@ namespace OpenP.Extensions
             {
                 options.AddPolicy("CorsPolicy",
                     builder => builder
-                        .WithOrigins("http://localhost:5173")
+                        .WithOrigins(
+                            "http://localhost:5173", "https://localhost:5173", 
+                            "http://127.0.0.1:5173", "https://127.0.0.1:5173",
+                            "http://frontend:5173", "https://frontend:5173",
+                            "http://host.docker.internal:5173", "https://host.docker.internal:5173"
+                        )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials());
@@ -31,10 +36,10 @@ namespace OpenP.Extensions
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "OpenP API", Version = "v1" });
-                
+            
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT авторизация, используя схему Bearer. Пример: \"Bearer {token}\"",
+                    Description = "JWT авторизация, используя схему Bearer",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,

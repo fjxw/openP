@@ -5,6 +5,8 @@ import { fetchUserOrders } from '../store/slices/orderSlice';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Alert from '../components/ui/Alert';
 import productService from '../api/productService';
+import { translateOrderStatusToRussian } from '../utils/translations';
+import { formatDate } from '../utils/dateUtils';
 
 const OrdersPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -40,10 +42,10 @@ const OrdersPage: React.FC = () => {
   if (orders.length === 0) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-2xl font-bold mb-4">No Orders Found</h2>
-        <p className="mb-6">You haven't placed any orders yet.</p>
+        <h2 className="text-2xl font-bold mb-4">Нет заказов</h2>
+        <p className="mb-6">Вы еще не сделали ни одного заказа.</p>
         <Link to="/" className="btn btn-primary">
-          Browse Products
+          Перейти к покупкам
         </Link>
       </div>
     );
@@ -51,7 +53,7 @@ const OrdersPage: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Your Orders</h1>
+      <h1 className="text-3xl font-bold mb-6">Ваши заказы</h1>
       
       <div className="space-y-6">
         {orders.map(order => (
@@ -60,18 +62,18 @@ const OrdersPage: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="card-title">
-                    Order #{order.orderId}
+                    Заказ №{order.orderId}
                     <div className={`badge ${getStatusBadgeClass(order.status)}`}>
-                      {order.status}
+                      {translateOrderStatusToRussian(order.status)}
                     </div>
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Placed on {new Date(order.createdAt).toLocaleDateString()}
+                    Создан {formatDate(order.orderDate)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">${order.totalPrice}</div>
-                  <div className="text-sm">{order.items?.length || 0} items</div>
+                  <div className="font-bold">{order.totalPrice.toFixed(2)} ₽</div>
+                  <div className="text-sm">{order.items?.length || 0} товаров</div>
                 </div>
               </div>
               
@@ -90,14 +92,14 @@ const OrdersPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-medium line-clamp-1">{item.product?.name || "Unknown Product"}</div>
-                      <div className="text-xs">Qty: {item.quantity}</div>
+                      <div className="text-sm font-medium line-clamp-1">{item.product?.name || "Неизвестный товар"}</div>
+                      <div className="text-xs">Кол-во: {item.quantity}</div>
                     </div>
                   </div>
                 )) || []}
                 {(order.items?.length || 0) > 4 && (
                   <div className="flex items-center justify-center">
-                    <div className="text-sm font-medium">+{(order.items?.length || 0) - 4} more items</div>
+                    <div className="text-sm font-medium">+{(order.items?.length || 0) - 4} еще товаров</div>
                   </div>
                 )}
               </div>
@@ -107,7 +109,7 @@ const OrdersPage: React.FC = () => {
                   to={`/orders/${order.orderId}`} 
                   className="btn btn-sm btn-primary"
                 >
-                  View Details
+                  Детали заказа
                 </Link>
               </div>
             </div>

@@ -8,7 +8,6 @@ export const useProductDetails = (cartItems: CartItem[] = []) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
-  // создаём ключ, который меняется только при реальных изменениях в cartItems
   const itemsKey = useMemo(
     () => cartItems.map(item => `${item.productId}:${item.quantity}`).join('|'),
     [cartItems]
@@ -26,8 +25,6 @@ export const useProductDetails = (cartItems: CartItem[] = []) => {
           setProcessedItems([]);
           return;
         }
-
-        // загрузка отсутствующих в кэше продуктов
         const toFetch = cartItems.filter(item => !getProductFromCache(item.productId));
         await Promise.all(
           toFetch.map(async item => {
@@ -40,8 +37,6 @@ export const useProductDetails = (cartItems: CartItem[] = []) => {
           })
         );
         if (cancelled) return;
-
-        // собираем финальный массив с деталями продуктов
         const itemsWithProducts = cartItems
           .map(item => {
             const product = getProductFromCache(item.productId);

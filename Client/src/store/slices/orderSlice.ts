@@ -43,11 +43,12 @@ export const fetchUserOrders = createAsyncThunk(
     try {
       const ordersFromApi = await orderService.getOrders();
       
-      // Преобразование формата данных API в формат клиента
       const orders = ordersFromApi.map((order: any) => ({
         ...order,
         items: order.orderItems || [],
-        totalPrice: order.totalAmount
+        totalPrice: order.totalAmount,
+        orderDate: order.orderDate,
+        createdAt: order.orderDate 
       })) as Order[];
       
       const ordersWithProducts = await Promise.all(orders.map(async (order: Order) => {
@@ -77,11 +78,12 @@ export const fetchOrderById = createAsyncThunk(
     try {
       const orderFromApi = await orderService.getOrderById(id);
       
-      // Преобразование формата данных API в формат клиента
       const order = {
         ...orderFromApi,
         items: orderFromApi.orderItems || [],
-        totalPrice: orderFromApi.totalAmount
+        totalPrice: orderFromApi.totalAmount,
+        orderDate: orderFromApi.orderDate,
+        createdAt: orderFromApi.orderDate 
       } as Order;
       
       const itemsWithProducts = await Promise.all(order.items.map(async (item: CartItem) => {
@@ -89,7 +91,7 @@ export const fetchOrderById = createAsyncThunk(
           const product = await productService.getProductById(item.productId);
           return { ...item, product } as CartItemWithProduct;
         } catch (error) {
-          console.error(`Failed to fetch product ${item.productId}:`, error);
+          console.error(`Не удалось подгрузить товар ${item.productId}:`, error);
           return item;
         }
       }));
@@ -106,7 +108,6 @@ export const updateOrderStatus = createAsyncThunk(
   async ({ id, status }: { id: number; status: string }, { rejectWithValue }) => {
     try {
       await orderService.updateOrder(id, { Status: status });
-      // Возвращаем id и новый статус, так как API не возвращает обновленный объект
       return { orderId: id, status };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Не удалось обновить статус');
@@ -120,11 +121,12 @@ export const fetchAllOrders = createAsyncThunk(
     try {
       const ordersFromApi = await orderService.getAllOrders();
       
-      // Преобразование формата данных API в формат клиента
       const orders = ordersFromApi.map((order: any) => ({
         ...order,
         items: order.orderItems || [],
-        totalPrice: order.totalAmount
+        totalPrice: order.totalAmount,
+        orderDate: order.orderDate,
+        createdAt: order.orderDate 
       })) as Order[];
       
       const ordersWithProducts = await Promise.all(orders.map(async (order: Order) => {
@@ -133,7 +135,7 @@ export const fetchAllOrders = createAsyncThunk(
             const product = await productService.getProductById(item.productId);
             return { ...item, product } as CartItemWithProduct;
           } catch (error) {
-            console.error(`Failed to fetch product ${item.productId}:`, error);
+            console.error(`Не удалось подгрузить товар ${item.productId}:`, error);
             return item;
           }
         }));
@@ -223,7 +225,6 @@ const orderSlice = createSlice({
         state.isLoading = false;
         const { orderId, status } = action.payload;
 
-        // Обновление заказа в списке заказов
         const index = state.orders.findIndex(order => order.orderId === orderId);
         if (index !== -1) {
           state.orders[index] = {
@@ -232,7 +233,6 @@ const orderSlice = createSlice({
           };
         }
 
-        // Обновление текущего заказа, если он открыт
         if (state.currentOrder?.orderId === orderId) {
           state.currentOrder = {
             ...state.currentOrder,

@@ -170,7 +170,6 @@ namespace OpenP.Controllers
         {
             var userId = GetUserId();
             
-            // Check if user exists before creating an order
             var user = await userRepository.GetUserByIdAsync(userId);
             if (user == null)
                 return NotFound(new { message = "Пользователь не найден" });
@@ -252,7 +251,6 @@ namespace OpenP.Controllers
                 var newStatus = status;
                 var oldStatus = order.Status;
                 
-                // Проверяем, что заказ не находится уже в завершенном состоянии
                 if (oldStatus == Statuses.Completed || oldStatus == Statuses.Cancelled)
                 {
                     return BadRequest(new { message = "Невозможно изменить статус завершенного или отмененного заказа" });
@@ -260,7 +258,6 @@ namespace OpenP.Controllers
                 
                 order.Status = newStatus;
                 
-                // Возвращаем товары на склад при отмене заказа
                 if (newStatus == Statuses.Cancelled)
                 {
                     foreach (var it in order.OrderItems)

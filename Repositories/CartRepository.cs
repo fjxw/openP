@@ -59,7 +59,7 @@ namespace OpenP.Repositories
                 throw new InvalidOperationException("Недостаточно товара на складе");
             var cart = await GetCartByUserIdAsync(userId);
             
-            // Добавляем проверку на null
+            
             if (cart == null)
                 throw new InvalidOperationException("Корзина не найдена");
                 
@@ -72,7 +72,7 @@ namespace OpenP.Repositories
             }
             else
             {
-                // Если товара нет в корзине, добавляем его
+        
                 var item = new CartItem 
                 { 
                     CartId = cart.CartId, 

@@ -1,14 +1,21 @@
-﻿services:
+
+services:
   postgres:
     image: postgres:latest
     restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: openp
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d openp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -20,6 +27,8 @@
       - "8080:80"
     depends_on:
       - postgres
-
+ 
 volumes:
   postgres_data:
+  files_data:
+

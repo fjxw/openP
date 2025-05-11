@@ -31,7 +31,7 @@ const cartService = {
         quantity
       }, { withCredentials: true });
       
-      // После успешного добавления, получаем обновленную корзину
+    
       const response = await axios.get(`${API_URL}/api/cart`, { 
         withCredentials: true 
       });
@@ -43,7 +43,6 @@ const cartService = {
 
   updateItemQuantity: async (productId: number, quantity: number) => {
     try {
-      // Отправляем number напрямую, а не как строку JSON
       const response = await axios.put(
         `${API_URL}/api/cart/items/${productId}`, 
         quantity, 
@@ -54,7 +53,7 @@ const cartService = {
           }
         }
       );
-      // После успешного обновления, получаем актуальную корзину
+  
       const cartResponse = await axios.get(`${API_URL}/api/cart`, { 
         withCredentials: true 
       });

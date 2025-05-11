@@ -137,7 +137,7 @@ const productsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch products
+    
       .addCase(fetchProducts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -151,7 +151,6 @@ const productsSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch product by id
       .addCase(fetchProductById.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -165,7 +164,6 @@ const productsSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch products by category
       .addCase(fetchProductsByCategory.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -178,8 +176,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Fetch products by price range
+     
       .addCase(fetchProductsByPriceRange.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -192,8 +189,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Search products
+     
       .addCase(searchProducts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -207,7 +203,6 @@ const productsSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch categories
       .addCase(fetchCategories.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -220,8 +215,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Create product
+    
       .addCase(createProduct.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -234,8 +228,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Update product
+     
       .addCase(updateProduct.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -254,8 +247,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Delete product
+    
       .addCase(deleteProduct.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -271,8 +263,7 @@ const productsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
-      // Upload product image
+     
       .addCase(uploadProductImage.pending, (state) => {
         state.isLoading = true;
         state.error = null;

@@ -5,7 +5,7 @@ public class CartDto
     public int CartId { get; set; }
     public int UserId { get; set; }
     public List<CartItemDto> Items { get; set; } = new List<CartItemDto>();
-    public decimal TotalPrice { get; set; } // Добавляем свойство для общей суммы
+    public decimal TotalPrice { get; set; } 
 }
 
 public class CartItemDto

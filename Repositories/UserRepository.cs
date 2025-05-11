@@ -50,16 +50,13 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
     {
         if (user == null) return;
         
-        // First save the user to get a valid UserId
         await context.Users.AddAsync(user);
         await context.SaveChangesAsync();
-        
-        // Now create a cart for this user
+       
         var cart = new Cart { UserId = user.UserId };
         await context.Carts.AddAsync(cart);
         await context.SaveChangesAsync();
-        
-        // Update the user with the new CartId
+       
         user.CartId = cart.CartId;
         context.Users.Update(user);
         await context.SaveChangesAsync();
@@ -81,14 +78,12 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
             
         if (user != null)
         {
-            // If we need to handle any order cleanup manually
-            // Remove cart items first to avoid foreign key issues
+      
             if (user.Cart?.CartItems != null)
             {
                 context.CartItems.RemoveRange(user.Cart.CartItems);
             }
             
-            // Then remove the user
             context.Users.Remove(user);
             await context.SaveChangesAsync();
         }

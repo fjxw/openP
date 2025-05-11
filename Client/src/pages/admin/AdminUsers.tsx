@@ -209,22 +209,19 @@ const AdminUsers: React.FC = () => {
         </div>
       </div>
       
-      {/* User Form Modal */}
-      <dialog id="user_modal" className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
+      <div className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
-          <h3 className="font-bold text-lg">
+          <h3 className="font-bold text-xl mb-6">
             {selectedUser ? 'Изменить пользователя' : 'Создать пользователя'}
           </h3>
           
-          <form onSubmit={handleSubmit}>
-            <div className="form-control mt-4">
-              <label className="label">
-                <span className="label-text">Имя пользователя</span>
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="form-control">
+              <div className="text-sm font-medium mb-2">Имя пользователя</div>
               <input 
                 type="text" 
                 name="username" 
-                className="input input-bordered" 
+                className="input input-bordered w-full" 
                 value={formData.username}
                 onChange={handleChange}
                 disabled={!!selectedUser}
@@ -233,13 +230,11 @@ const AdminUsers: React.FC = () => {
             </div>
             
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
-              </label>
+              <div className="text-sm font-medium mb-2">Email</div>
               <input 
                 type="email" 
                 name="email" 
-                className="input input-bordered" 
+                className="input input-bordered w-full" 
                 value={formData.email}
                 onChange={handleChange}
                 disabled={!!selectedUser}
@@ -249,13 +244,11 @@ const AdminUsers: React.FC = () => {
             
             {!selectedUser && (
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Пароль</span>
-                </label>
+                <div className="text-sm font-medium mb-2">Пароль</div>
                 <input 
                   type="password" 
                   name="password" 
-                  className="input input-bordered" 
+                  className="input input-bordered w-full" 
                   value={formData.password}
                   onChange={handleChange}
                   required={!selectedUser}
@@ -264,12 +257,10 @@ const AdminUsers: React.FC = () => {
             )}
             
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Роль</span>
-              </label>
+              <div className="text-sm font-medium mb-2">Роль</div>
               <select 
                 name="role" 
-                className="select select-bordered" 
+                className="select select-bordered w-full" 
                 value={formData.role}
                 onChange={handleChange}
                 required
@@ -280,7 +271,7 @@ const AdminUsers: React.FC = () => {
               </select>
             </div>
             
-            <div className="modal-action">
+            <div className="modal-action mt-8">
               <button type="button" className="btn" onClick={closeModal}>Отмена</button>
               <button type="submit" className="btn btn-primary" disabled={isLoading}>
                 {isLoading ? <span className="loading loading-spinner loading-sm"></span> : 'Сохранить'}
@@ -289,7 +280,7 @@ const AdminUsers: React.FC = () => {
           </form>
         </div>
         <div className="modal-backdrop" onClick={closeModal}></div>
-      </dialog>
+      </div>
     </div>
   );
 };

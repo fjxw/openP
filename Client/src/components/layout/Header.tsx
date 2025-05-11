@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
 
-
 const Header: React.FC = () => {
-  const { isAuthenticated, user, isAdmin } = useAppSelector(state => state.auth);
+  const { isAuthenticated, user } = useAppSelector(state => state.auth);
   const { items = [] } = useAppSelector(state => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -40,17 +39,6 @@ const Header: React.FC = () => {
                 <li><Link to="/profile">Профиль</Link></li>
               </>
             )}
-            {isAdmin && (
-              <li>
-                <a>Админ</a>
-                <ul className="p-2">
-                  <li><Link to="/admin">Панель управления</Link></li>
-                  <li><Link to="/admin/products">Товары</Link></li>
-                  <li><Link to="/admin/orders">Заказы</Link></li>
-                  <li><Link to="/admin/users">Пользователи</Link></li>
-                </ul>
-              </li>
-            )}
           </ul>
         </div>
         <Link to="/" className="text-xl font-bold ml-4">openP</Link>
@@ -64,19 +52,6 @@ const Header: React.FC = () => {
               <li><Link to="/orders">Мои заказы</Link></li>
               <li><Link to="/profile">Профиль</Link></li>
             </>
-          )}
-          {isAdmin && (
-            <li>
-              <details>
-                <summary>Админ</summary>
-                <ul className="p-2 bg-base-100 z-10">
-                  <li><Link to="/admin">Панель управления</Link></li>
-                  <li><Link to="/admin/products">Товары</Link></li>
-                  <li><Link to="/admin/orders">Заказы</Link></li>
-                  <li><Link to="/admin/users">Пользователи</Link></li>
-                </ul>
-              </details>
-            </li>
           )}
         </ul>
       </div>

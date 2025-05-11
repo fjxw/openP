@@ -36,8 +36,7 @@ namespace OpenP.Controllers
                 }
                 catch (Exception)
                 {
-                    // Another concurrent request might have created the cart
-                    // Try to fetch it again
+                    
                     cart = await cartRepository.GetCartByUserIdAsync(userId);
                     
                     if (cart == null)
@@ -47,7 +46,6 @@ namespace OpenP.Controllers
                 }
             }
 
-            // Получаем общую стоимость корзины
             decimal totalPrice = await cartRepository.GetCartTotalAsync(userId);
 
             var cartDto = new CartDto
@@ -59,7 +57,7 @@ namespace OpenP.Controllers
                     ProductId = ci.ProductId,
                     Quantity = ci.Quantity
                 }).ToList(),
-                TotalPrice = totalPrice // Добавляем общую сумму в DTO
+                TotalPrice = totalPrice 
             };
             return Ok(cartDto);
         }
@@ -104,7 +102,6 @@ namespace OpenP.Controllers
 
             await cartRepository.UpdateCartItemQuantityAsync(userId, productId, quantity);
             
-            // Возвращаем обновленную корзину после изменения количества
             var cart = await cartRepository.GetCartByUserIdAsync(userId);
             var cartDto = new CartDto
             {

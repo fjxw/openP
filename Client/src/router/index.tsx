@@ -8,6 +8,7 @@ import RegisterPage from '../pages/auth/RegisterPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import OrdersPage from '../pages/OrdersPage';
+import ProfilePage from '../pages/ProfilePage';
 import OrderConfirmationPage from '../pages/OrderConfirmationPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminProducts from '../pages/admin/AdminProducts';
@@ -16,6 +17,7 @@ import AdminUsers from '../pages/admin/AdminUsers';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from '../routes/ProtectedRoute';
 import AdminRoute from '../routes/AdminRoute';
+import UserRoute from '../routes/UserRoute';
 
 const router = createBrowserRouter([
   {
@@ -28,7 +30,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'products/:id',
-        element: <ProductPage />
+        element: <UserRoute><ProductPage /></UserRoute>
       },
       {
         path: 'login',
@@ -40,19 +42,23 @@ const router = createBrowserRouter([
       },
       {
         path: 'cart',
-        element: <CartPage />
+        element: <UserRoute><CartPage /></UserRoute>
       },
       {
         path: 'checkout',
-        element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+        element: <UserRoute><ProtectedRoute><CheckoutPage /></ProtectedRoute></UserRoute>
       },
       {
         path: 'orders',
-        element: <ProtectedRoute><OrdersPage /></ProtectedRoute>
+        element: <UserRoute><ProtectedRoute><OrdersPage /></ProtectedRoute></UserRoute>
+      },
+      {
+        path: 'profile',
+        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>
       },
       {
         path: 'orders/:id',
-        element: <ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>
+        element: <UserRoute><ProtectedRoute><OrderConfirmationPage /></ProtectedRoute></UserRoute>
       },
       {
         path: 'admin',

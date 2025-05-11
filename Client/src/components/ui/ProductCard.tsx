@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import productService from '../../api/productService';
 import type { Product } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { addToCart, updateCartItem } from '../../store/slices/cartSlice';
 import { translateCategoryToRussian } from '../../utils/translations';
+import ProductImage from './ProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -15,7 +15,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { items = [] } = useAppSelector(state => state.cart);
   const [qty, setQty] = useState(1);
 
-  // Проверяем, есть ли товар уже в корзине
+
   useEffect(() => {
     const cartItem = items.find(item => item.productId === product.productId);
     if (cartItem) {
@@ -26,7 +26,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Если товар уже в корзине, обновляем количество
+    
     const existingItem = items.find(item => item.productId === product.productId);
     if (existingItem) {
       dispatch(updateCartItem({ productId: product.productId, quantity: qty }));
@@ -49,16 +49,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
 
-  // Проверяем, добавлен ли товар в корзину
+
   const isInCart = items.some(item => item.productId === product.productId);
 
   return (
     <div className="card bg-base-100 shadow-xl">
       <figure>
-        <img 
-          src={productService.getProductImage(product.productId) || "https://picsum.photos/300/200"} 
-          alt={product.name} 
+        <ProductImage
+          productId={product.productId}
+          alt={product.name}
           className="h-48 w-full object-cover"
+          fallbackImage="https://picsum.photos/300/200"
         />
       </figure>
       <div className="card-body">
@@ -73,7 +74,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </h2>
         <p className="text-sm line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-lg font-bold">${product.price.toFixed(2)}</span>
+          <span className="text-lg font-bold">{product.price.toFixed(2)} ₽</span>
           <span className="text-sm text-gray-500">{translateCategoryToRussian(product.category)}</span>
         </div>
         <div className="card-actions flex items-center flex-nowrap gap-1 mt-3">
