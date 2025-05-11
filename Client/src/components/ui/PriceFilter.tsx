@@ -59,7 +59,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({ minPrice, maxPrice, onChange 
           />
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button onClick={handleApply} className="btn btn-sm btn-primary">Применить</button>
         <button onClick={handleReset} className="btn btn-sm btn-ghost">Сбросить</button>
       </div>

@@ -90,7 +90,7 @@ namespace OpenP.Extensions
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICartRepository, CartRepository>();
-            services.AddScoped<AuthService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<FileService>();
         }
     }

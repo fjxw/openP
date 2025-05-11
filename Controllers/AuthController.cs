@@ -9,15 +9,25 @@ namespace OpenP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(AuthService authService, IUserRepository userRepository) : ControllerBase
+    public class AuthController(IAuthService authService, IUserRepository userRepository) : ControllerBase
     {
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
         {
             await authService.RegisterUserAsync(request.Email, request.Username, request.Password);
-            var result = await authService.LoginAsync(request.Email, request.Password);
-            Response.Cookies.Append("jwt", result, new CookieOptions { HttpOnly = true });
-            return Ok(new { message = "Пользователь успешно зарегистрирован", token = result });
+            var token = await authService.LoginAsync(request.Email, request.Password);
+            Response.Cookies.Append("jwt", token, new CookieOptions { HttpOnly = true });
+           
+            var user = await userRepository.GetUserByEmailAsync(request.Email);
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Username = user.Username,
+                Role = user.Role.ToString()
+            };
+            
+            return Ok(userDto);
         }
 
         [HttpPost("login")]
@@ -25,9 +35,19 @@ namespace OpenP.Controllers
         {
             try
             {
-                var result = await authService.LoginAsync(request.Email, request.Password);
-                Response.Cookies.Append("jwt", result, new CookieOptions { HttpOnly = true });
-                return Ok(new { message = "Вход успешно выполнен", token = result });
+                var token = await authService.LoginAsync(request.Email, request.Password);
+                Response.Cookies.Append("jwt", token, new CookieOptions { HttpOnly = true });
+                
+                var user = await userRepository.GetUserByEmailAsync(request.Email);
+                var userDto = new UserDto
+                {
+                    UserId = user.UserId,
+                    Email = user.Email,
+                    Username = user.Username,
+                    Role = user.Role.ToString()
+                };
+                
+                return Ok(userDto);
             }
             catch (Exception e)
             {

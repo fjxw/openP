@@ -9,7 +9,7 @@ const authService = {
         username,
         password
       }, { withCredentials: true });
-      return response.data;
+      return response.data; // Теперь это объект UserDto
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при регистрации';
     }
@@ -21,7 +21,7 @@ const authService = {
         email,
         password
       }, { withCredentials: true });
-      return response.data;
+      return response.data; // Теперь это объект UserDto
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при входе';
     }
@@ -32,7 +32,7 @@ const authService = {
       const response = await axios.post(`${API_URL}/api/auth/reset-password`, {
         email,
         newPassword
-      });
+      }, { withCredentials: true });
       return response.data;
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при сбросе пароля';

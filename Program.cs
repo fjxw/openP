@@ -19,12 +19,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("CorsPolicy");
+app.UseMiddleware<JwtCookieMiddleware>();
 app.UseRouting();
 app.UseHttpsRedirection();
-app.UseMiddleware<JwtCookieMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<AntiforgeryTokenMiddleware>();
 app.UseAntiforgery();
 app.UseSwagger();
 app.UseSwaggerUI();
