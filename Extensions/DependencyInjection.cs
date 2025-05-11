@@ -21,12 +21,7 @@ namespace OpenP.Extensions
             {
                 options.AddPolicy("CorsPolicy",
                     builder => builder
-                        .WithOrigins(
-                            "http://localhost:5173", "https://localhost:5173", 
-                            "http://127.0.0.1:5173", "https://127.0.0.1:5173",
-                            "http://frontend:5173", "https://frontend:5173",
-                            "http://host.docker.internal:5173", "https://host.docker.internal:5173"
-                        )
+                        .WithOrigins("http://localhost:6786")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials());

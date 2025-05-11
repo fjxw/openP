@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
     Args = args
 });
 
-builder.WebHost.UseUrls("http://localhost:5093");
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 builder.Services.AddDependencies(builder.Configuration);
 

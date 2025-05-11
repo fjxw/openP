@@ -96,6 +96,19 @@
             "netCore": {
                 "appProject": "${workspaceFolder}/OpenP/OpenP.csproj"
             }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build",
+            "platform": "node",
+            "dockerBuild": {
+                "dockerfile": "${workspaceFolder}/Client/Dockerfile",
+                "context": "${workspaceFolder}/Client",
+                "pull": true
+            },
+            "node": {
+                "package": "${workspaceFolder}/Client/package.json"
+            }
         }
     ]
 }

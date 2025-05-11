@@ -1,7 +1,9 @@
+
 services:    
   postgres:
     image: postgres:latest
     restart: always
+    container_name: postgres
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -19,6 +21,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: always
+    container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -26,7 +29,33 @@ services:
       - "8080:80"
     depends_on:
       - postgres
+
+  client:
+    build:
+      context: ./Client
+      dockerfile: ./Dockerfile
+    ports:
+      - 6786:6000
+    container_name: client
+    depends_on:
+      - backend
+    restart: on-failure
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 5000:5000
+    container_name: backend
+    depends_on:
+      - postgres
+    restart: always
+    volumes:
+      - product-images:/app/Files
  
 volumes:
   postgres_data:
+  product-images:
+    driver: local
 
