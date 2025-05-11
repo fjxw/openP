@@ -1,5 +1,4 @@
-
-services:
+services:    
   postgres:
     image: postgres:latest
     restart: always
@@ -30,5 +29,4 @@ services:
  
 volumes:
   postgres_data:
-  files_data:
 

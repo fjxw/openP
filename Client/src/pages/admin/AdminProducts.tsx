@@ -120,7 +120,7 @@ const AdminProducts: React.FC = () => {
       
       closeModal();
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Ошибка формы:", error);
     }
   };
   
@@ -181,7 +181,7 @@ const AdminProducts: React.FC = () => {
                     <div className="text-sm line-clamp-1">{product.description}</div>
                   </td>
                   <td>{translateCategoryToRussian(product.category)}</td>
-                  <td>${product.price.toFixed(2)}</td>
+                  <td>{product.price.toFixed(2)} ₽</td>
                   <td>{product.quantity}</td>
                   <td>
                     <div className="flex gap-2">

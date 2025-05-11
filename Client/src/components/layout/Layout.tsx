@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { getCurrentUser } from '../../store/slices/authSlice';
 import { fetchCart } from '../../store/slices/cartSlice';
 import { useLocation } from 'react-router';
+import { initializeTheme } from '../../utils/themeManager';
 
 const Layout: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -15,9 +16,8 @@ const Layout: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-  
+    initializeTheme();
     dispatch(getCurrentUser());
-    
     
     if (!isAdmin) {
       dispatch(fetchCart());

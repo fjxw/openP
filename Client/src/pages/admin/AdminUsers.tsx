@@ -31,7 +31,7 @@ const AdminUsers: React.FC = () => {
         const data = await userService.getUsers();
         setUsers(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load users');
+        setError(err.message || 'Не удалось загрузить пользователей');
       } finally {
         setIsLoading(false);
       }
@@ -88,14 +88,25 @@ const AdminUsers: React.FC = () => {
         const userId = selectedUser.userId;
         setUpdatingUser(userId);
         
+        const updateData = {
+          username: formData.username !== selectedUser.username ? formData.username : undefined,
+          email: formData.email !== selectedUser.email ? formData.email : undefined,
+          role: formData.role !== selectedUser.role ? formData.role : undefined
+        };
+        
         const result = await userService.updateUserById(
           userId,
-          { role: formData.role }
+          updateData
         );
         
         setUsers(users.map(u => 
           u.userId === userId 
-            ? {...u, role: formData.role} 
+            ? {
+                ...u,
+                username: formData.username,
+                email: formData.email,
+                role: formData.role
+              } 
             : u
         ));
         
@@ -112,7 +123,7 @@ const AdminUsers: React.FC = () => {
         closeModal();
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save user');
+      setError(err.message || 'Не удалось сохранить пользователя');
     } finally {
       setIsLoading(false);
       setUpdatingUser(null);
@@ -121,11 +132,11 @@ const AdminUsers: React.FC = () => {
   
   const handleDeleteUser = async (user: User) => {
     if (user.userId === currentUser?.userId) {
-      setError("You cannot delete your own account");
+      setError("Вы не можете удалить собственный аккаунт");
       return;
     }
     
-    if (confirm(`Are you sure you want to delete ${user.username}?`)) {
+    if (confirm(`Вы уверены что хотите удалить аккаунт ${user.username}?`)) {
       setIsLoading(true);
       setError(null);
       setUpdatingUser(user.userId);
@@ -134,7 +145,7 @@ const AdminUsers: React.FC = () => {
         await userService.deleteUser(user.userId);
         setUsers(users.filter(u => u.userId !== user.userId));
       } catch (err: any) {
-        setError(err.message || 'Failed to delete user');
+        setError(err.message || 'Ошибка при удалении аккаунта');
       } finally {
         setIsLoading(false);
         setUpdatingUser(null);
@@ -224,7 +235,6 @@ const AdminUsers: React.FC = () => {
                 className="input input-bordered w-full" 
                 value={formData.username}
                 onChange={handleChange}
-                disabled={!!selectedUser}
                 required
               />
             </div>
@@ -237,7 +247,6 @@ const AdminUsers: React.FC = () => {
                 className="input input-bordered w-full" 
                 value={formData.email}
                 onChange={handleChange}
-                disabled={!!selectedUser}
                 required
               />
             </div>

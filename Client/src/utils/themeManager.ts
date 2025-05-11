@@ -1,5 +1,5 @@
 export const initializeTheme = (): void => {
-  const savedTheme = localStorage.getItem('theme') || 'caramel';
+  const savedTheme = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
 };
 

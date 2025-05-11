@@ -100,7 +100,10 @@ const ProfilePage: React.FC = () => {
       if (formData.password) {
         updateData.password = formData.password;
       }
+
+      await userService.updateUser(updateData);
       
+
       dispatch(updateUser({
         ...user,
         username: formData.username || user?.username,
@@ -117,7 +120,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (confirm('This action cannot be undone. Are you sure you want to delete your account?')) {
+    if (confirm('Вы уверены что хотите удалить аккаунт?')) {
       const result = await dispatch(deleteAccount());
       if (deleteAccount.fulfilled.match(result)) {
         navigate('/');

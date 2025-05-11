@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { setTheme as setAppTheme, availableThemes } from '../utils/themeManager';
+import { setTheme as setAppTheme, availableThemes, initializeTheme } from '../utils/themeManager';
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<string>(localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState<string>(localStorage.getItem('theme') || 'dark');
   
   const changeTheme = (newTheme: string) => {
     setTheme(newTheme);
@@ -10,7 +10,7 @@ export const useTheme = () => {
   };
   
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    initializeTheme();
   }, []);
 
   return { theme, changeTheme, availableThemes };
