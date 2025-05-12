@@ -28,34 +28,34 @@ const HomePage: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    // Используем разные действия в зависимости от активных фильтров
+ 
     const fetchFilteredProducts = async () => {
       try {
         if (search) {
-          // Если есть поисковый запрос, используем поиск
+       
           await dispatch(searchProducts({
             name: search,
             pageNumber: page,
             pageSize: 12
           }));
         } else if (minPrice !== undefined || maxPrice !== undefined) {
-          // Если установлен диапазон цен (возможно вместе с категорией)
+          
           await dispatch(fetchProductsByPriceRange({
             minPrice: minPrice || 0,
-            maxPrice: maxPrice || 100000, // Большое значение по умолчанию
-            category, // Передаем категорию, если она выбрана
+            maxPrice: maxPrice || 100000, 
+            category, 
             pageNumber: page,
             pageSize: 12
           }));
         } else if (category) {
-          // Если выбрана только категория без фильтра цены
+          
           await dispatch(fetchProductsByCategory({
             category,
             pageNumber: page,
             pageSize: 12
           }));
         } else {
-          // Без фильтров - получаем все товары
+        
           await dispatch(fetchProducts({
             pageNumber: page,
             pageSize: 12
@@ -72,7 +72,6 @@ const HomePage: React.FC = () => {
   const updateFilters = (filters: Record<string, string | undefined>) => {
     const newParams = new URLSearchParams(searchParams.toString());
     
-    // Update params
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         newParams.set(key, value);
@@ -80,8 +79,6 @@ const HomePage: React.FC = () => {
         newParams.delete(key);
       }
     });
-    
-    // Reset to first page when filters change
     if (!('page' in filters)) {
       newParams.set('page', '1');
     }
@@ -92,7 +89,7 @@ const HomePage: React.FC = () => {
   const handleCategoryChange = (newCategory: string | undefined) => {
     updateFilters({ 
       category: newCategory,
-      search: undefined // Сбрасываем поиск при изменении категории
+      search: undefined 
     });
   };
 

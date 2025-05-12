@@ -13,8 +13,8 @@ export interface ProductState {
   currentProduct: Product | null;
   totalCount: number;
   categories?: string[];
-  totalPages: number; // Добавляем свойство
-  currentPage: number; // Добавляем свойство
+  totalPages: number; 
+  currentPage: number;
   isLoading: boolean;
   error: string | null;
 }
@@ -22,8 +22,8 @@ export interface ProductState {
 export interface CartItem {
   productId: number;
   quantity: number;
-  price?: number; // Добавляем для OrderItem
-  product?: Product; // Добавляем возможность иметь полную информацию о продукте
+  price?: number; 
+  product?: Product; 
 }
 
 export interface CartItemWithProduct extends CartItem {
@@ -38,7 +38,7 @@ export interface CartState {
 }
 
 export interface User {
-  userId: number; // Изменено с id на userId для соответствия бэкенду
+  userId: number; 
   email: string;
   username: string;
   role: string;

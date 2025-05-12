@@ -9,7 +9,7 @@ const authService = {
         username,
         password
       }, { withCredentials: true });
-      return response.data; // Теперь это объект UserDto
+      return response.data; 
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при регистрации';
     }
@@ -21,7 +21,7 @@ const authService = {
         email,
         password
       }, { withCredentials: true });
-      return response.data; // Теперь это объект UserDto
+      return response.data; 
     } catch (error: any) {
       throw error.response?.data?.message || 'Ошибка при входе';
     }

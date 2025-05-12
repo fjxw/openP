@@ -53,6 +53,7 @@ services:
     restart: always
     volumes:
       - product-images:/app/Files
+    user: "1000:1000"
  
 volumes:
   postgres_data:
